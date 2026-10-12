@@ -22,6 +22,20 @@ Copy `client/.env.example` to `client/.env` and `server/.env.example` to `server
 docker compose up -d
 ```
 
+Create the database tables and load fictional demo data from the repository root:
+
+```sh
+cd server && npm run prisma:migrate -- --name init
+npm run prisma:seed
+```
+
+Demo logins (local development only):
+
+- Admin: `admin@claimsight.local` / `AdminDemo123!`
+- Customers: `avery.brooks@example.test`, `jordan.patel@example.test`, or `riley.thompson@example.test` / `CustomerDemo123!`
+
+The seed can be rerun safely; it upserts its demo users, policies, and claims. Do not use these credentials outside local development.
+
 Start the API and frontend in separate terminals from the repository root:
 
 ```sh
