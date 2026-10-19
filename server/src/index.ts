@@ -3,6 +3,7 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import { authRouter } from './routes/auth.routes.js'
+import { adminRouter } from './routes/admin.routes.js'
 import { customerRouter } from './routes/customer.routes.js'
 import { errorHandler } from './middleware/error-handler.js'
 import { AppError } from './lib/app-error.js'
@@ -19,6 +20,7 @@ app.use(
 app.use(express.json())
 
 app.use('/api/auth', authRouter)
+app.use('/api/admin', adminRouter)
 app.use('/api', customerRouter)
 
 app.get('/health', (_request, response) => {

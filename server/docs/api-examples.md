@@ -95,3 +95,73 @@ Create or seed customer A and customer B, each with a policy and claim. Authenti
 - `GET /api/policies` and `GET /api/claims` contain only A's records.
 - `GET /api/policies/<B-policy-id>`, `GET /api/claims/<B-claim-id>`, and `POST /api/claims/<B-claim-id>/documents` all return `404`.
 - `POST /api/claims` using B's policy ID returns `404`, and including a `userId` in the body cannot create a claim for B or another account.
+
+## Admin endpoints
+
+All `/api/admin` endpoints require a bearer token for an `ADMIN` user. An authenticated `CUSTOMER` receives `403 Forbidden`; missing or invalid authentication receives `401`. Admin responses never include `passwordHash`.
+
+### List claims
+
+`GET /api/admin/claims?status=UNDER_REVIEW&policyType=AUTO&search=avery&sortBy=createdAt&order=desc&page=1&limit=10`
+
+Optional filters are `status` (`SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, or `PAID`), `policyType` (`AUTO`, `HOME`, `HEALTH`, or `TRAVEL`), and `search` (case-insensitive match against the claim number or customer name). `sortBy` is restricted to `createdAt`, `updatedAt`, `incidentDate`, `amount`, `status`, or `claimNumber`; `order` is `asc` or `desc`. Page defaults to `1`, limit defaults to `10` and is capped at `50`. The response contains `{ "items": [...], "pagination": { ... } }`; each item includes its customer and policy summary.
+
+### Claim details
+
+`GET /api/admin/claims/<claim-id>` returns `{ "claim": { ... } }` with customer and policy details, comments (with author names), documents, and chronological status history (with changer names).
+
+### Update claim status
+
+`PATCH /api/admin/claims/<claim-id>/status`
+
+```json
+{
+  "status": "UNDER_REVIEW"
+}
+```
+
+Allowed transitions are `SUBMITTED` to `UNDER_REVIEW`, `UNDER_REVIEW` to `APPROVED` or `REJECTED`, and `APPROVED` to `PAID`. Other transitions return `400 Bad Request`. A successful update returns `{ "claim": { ... } }`. The status update and history entry are committed in one transaction; the history actor always comes from the authenticated admin token.
+
+### Add a claim comment
+
+`POST /api/admin/claims/<claim-id>/comments`
+
+```json
+{
+  "message": "Review completed; supporting documentation is attached."
+}
+```
+
+The trimmed message must contain 1–5000 characters. Success returns `201 Created` with `{ "comment": { ... } }`; the comment author always comes from the authenticated admin token.
+
+### Claim statistics
+
+`GET /api/admin/stats` returns counts for every claim status and monthly claim totals for the current month and previous five calendar months:
+
+```json
+{
+  "claimsByStatus": [
+    { "status": "SUBMITTED", "count": 0 }
+  ],
+  "claimsPerMonth": [
+    { "month": "2026-05", "count": 0 },
+    { "month": "2026-06", "count": 0 },
+    { "month": "2026-07", "count": 0 },
+    { "month": "2026-08", "count": 0 },
+    { "month": "2026-09", "count": 0 },
+    { "month": "2026-10", "count": 0 }
+  ]
+}
+```
+
+### Admin authorization and transition checks
+
+Using a valid `CUSTOMER` token, verify each returns `403 Forbidden`:
+
+- `GET /api/admin/claims`
+- `GET /api/admin/claims/<claim-id>`
+- `PATCH /api/admin/claims/<claim-id>/status`
+- `POST /api/admin/claims/<claim-id>/comments`
+- `GET /api/admin/stats`
+
+Using an `ADMIN` token, verify `PATCH /api/admin/claims/<claim-id>/status` with a transition outside the allowed flow (for example `SUBMITTED` directly to `APPROVED`, or `REJECTED` to `PAID`) returns `400 Bad Request`.
