@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
+import { Button } from "./ui";
 
 const customerLinks = [
   { to: "/dashboard", label: "Overview" },
@@ -24,10 +26,19 @@ function BrandMark() {
 }
 
 export function AppShell() {
-  const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/admin");
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = user?.role === "ADMIN";
   const links = isAdmin ? adminLinks : customerLinks;
   const [menuOpen, setMenuOpen] = useState(false);
+
+  function handleLogout() {
+    logout();
+    setMenuOpen(false);
+    navigate("/login", { replace: true });
+  }
+
+  const homeLink = user ? (isAdmin ? "/admin" : "/dashboard") : "/login";
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f6f8f7] text-slate-900">
@@ -39,35 +50,51 @@ export function AppShell() {
       </a>
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/dashboard" className="flex shrink-0 items-center gap-2.5" aria-label="ClaimSight home">
+          <Link to={homeLink} className="flex shrink-0 items-center gap-2.5" aria-label="ClaimSight home">
             <BrandMark />
             <span className="text-lg font-bold tracking-tight text-slate-900">
               Claim<span className="text-teal-800">Sight</span>
             </span>
           </Link>
 
-          <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
-            {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end
-                className={({ isActive }) =>
-                  `rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
+          {user && (
+            <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
+              {links.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end
+                  className={({ isActive }) =>
+                    `rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+          )}
 
           <div className="hidden items-center gap-3 md:flex">
-            <span className="text-xs font-medium text-slate-500">
-              {isAdmin ? "Admin workspace" : "Customer portal"}
-            </span>
-            <span className="grid size-9 place-items-center rounded-full bg-[#e6f1ee] text-sm font-semibold text-teal-900" aria-label="Guest profile">
-              G
-            </span>
+            {user ? (
+              <>
+                <span className="text-xs font-medium text-slate-500">
+                  {isAdmin ? "Admin workspace" : "Customer portal"}
+                </span>
+                <span
+                  className="grid size-9 place-items-center rounded-full bg-[#e6f1ee] text-sm font-semibold text-teal-900"
+                  aria-label={`${user.name} profile`}
+                  title={user.name}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+                <Button variant="outline" onClick={handleLogout}>Logout</Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-semibold text-slate-600 hover:text-teal-900">Sign in</Link>
+                <Link to="/register" className="text-sm font-semibold text-teal-800 hover:text-teal-950">Create account</Link>
+              </>
+            )}
           </div>
 
           <button
@@ -85,22 +112,34 @@ export function AppShell() {
         {menuOpen && (
           <nav aria-label="Mobile navigation" className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
             <div className="mx-auto grid max-w-7xl gap-1">
-              {links.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end
-                  onClick={() => setMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `rounded-lg px-3.5 py-3 text-sm font-medium ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50"}`
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-              <div className="border-t border-slate-100 px-3.5 pt-3 text-xs font-medium text-slate-500">
-                {isAdmin ? "Admin workspace" : "Customer portal"} · Preview
-              </div>
+              {user ? (
+                <>
+                  {links.map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      end
+                      onClick={() => setMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `rounded-lg px-3.5 py-3 text-sm font-medium ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50"}`
+                      }
+                    >
+                      {link.label}
+                    </NavLink>
+                  ))}
+                  <div className="flex items-center justify-between border-t border-slate-100 px-3.5 pt-3">
+                    <span className="text-xs font-medium text-slate-500">
+                      {isAdmin ? "Admin workspace" : "Customer portal"}
+                    </span>
+                    <Button variant="outline" onClick={handleLogout}>Logout</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/login" onClick={() => setMenuOpen(false)} className="rounded-lg px-3.5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50">Sign in</NavLink>
+                  <NavLink to="/register" onClick={() => setMenuOpen(false)} className="rounded-lg px-3.5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50">Create account</NavLink>
+                </>
+              )}
             </div>
           </nav>
         )}

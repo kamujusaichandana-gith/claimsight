@@ -4,6 +4,7 @@ import type {
   ReactNode,
   SelectHTMLAttributes,
 } from "react";
+import { forwardRef } from "react";
 import type { ClaimStatus } from "../types";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
@@ -42,7 +43,10 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
 }
 
-export function Input({ label, error, hint, id, className = "", ...props }: InputProps) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { label, error, hint, id, className = "", ...props },
+  ref,
+) {
   const inputId = id ?? props.name;
   const helpId = inputId ? `${inputId}-help` : undefined;
 
@@ -52,6 +56,7 @@ export function Input({ label, error, hint, id, className = "", ...props }: Inpu
         {label}
       </label>
       <input
+        ref={ref}
         id={inputId}
         aria-invalid={Boolean(error)}
         aria-describedby={error || hint ? helpId : undefined}
@@ -65,7 +70,9 @@ export function Input({ label, error, hint, id, className = "", ...props }: Inpu
       )}
     </div>
   );
-}
+});
+
+Input.displayName = "Input";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
@@ -73,7 +80,10 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
 }
 
-export function Select({ label, options, error, id, className = "", ...props }: SelectProps) {
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { label, options, error, id, className = "", ...props },
+  ref,
+) {
   const selectId = id ?? props.name;
   const helpId = selectId ? `${selectId}-error` : undefined;
 
@@ -83,6 +93,7 @@ export function Select({ label, options, error, id, className = "", ...props }: 
         {label}
       </label>
       <select
+        ref={ref}
         id={selectId}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? helpId : undefined}
@@ -102,7 +113,9 @@ export function Select({ label, options, error, id, className = "", ...props }: 
       )}
     </div>
   );
-}
+});
+
+Select.displayName = "Select";
 
 interface CardProps {
   children: ReactNode;
