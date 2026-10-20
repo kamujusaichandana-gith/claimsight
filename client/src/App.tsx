@@ -6,6 +6,13 @@ import { GuestRoute, ProtectedRoute, RoleRoute } from "./auth/RouteGuards";
 import { AppShell } from "./components/AppShell";
 import { NotFoundPage, PlaceholderPage } from "./pages/PlaceholderPages";
 import { LoginPage, RegisterPage } from "./pages/AuthPages";
+import {
+  ClaimDetailsPage,
+  ClaimsPage,
+  DashboardPage,
+  PoliciesPage,
+  PolicyDetailsPage,
+} from "./pages/CustomerPages";
 
 const queryClient = new QueryClient();
 
@@ -40,12 +47,12 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route index element={<HomeRedirect />} />
                 <Route element={<RoleRoute role="CUSTOMER" />}>
-                  <Route path="dashboard" element={<PlaceholderPage pageKey="/dashboard" />} />
-                  <Route path="policies" element={<PlaceholderPage pageKey="/policies" />} />
-                  <Route path="policies/:id" element={<PlaceholderPage pageKey="/policies/:id" />} />
-                  <Route path="claims" element={<PlaceholderPage pageKey="/claims" />} />
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="policies" element={<PoliciesPage />} />
+                  <Route path="policies/:id" element={<PolicyDetailsPage />} />
+                  <Route path="claims" element={<ClaimsPage />} />
                   <Route path="claims/new" element={<PlaceholderPage pageKey="/claims/new" />} />
-                  <Route path="claims/:id" element={<PlaceholderPage pageKey="/claims/:id" />} />
+                  <Route path="claims/:id" element={<ClaimDetailsPage />} />
                 </Route>
                 <Route element={<RoleRoute role="ADMIN" />}>
                   <Route path="admin" element={<PlaceholderPage pageKey="/admin" />} />
