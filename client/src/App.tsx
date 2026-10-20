@@ -13,6 +13,7 @@ import {
   PoliciesPage,
   PolicyDetailsPage,
 } from "./pages/CustomerPages";
+import { NewClaimPage } from "./pages/claims/new/NewClaimPage";
 
 const queryClient = new QueryClient();
 
@@ -51,7 +52,7 @@ function App() {
                   <Route path="policies" element={<PoliciesPage />} />
                   <Route path="policies/:id" element={<PolicyDetailsPage />} />
                   <Route path="claims" element={<ClaimsPage />} />
-                  <Route path="claims/new" element={<PlaceholderPage pageKey="/claims/new" />} />
+                  <Route path="claims/new" element={<NewClaimPage />} />
                   <Route path="claims/:id" element={<ClaimDetailsPage />} />
                 </Route>
                 <Route element={<RoleRoute role="ADMIN" />}>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Button, Card, EmptyState, ErrorMessage, Spinner, Badge } from "../components/ui";
+import { Button, Card, EmptyState, ErrorMessage, Spinner, Badge, Toast } from "../components/ui";
 import { useClaim, useClaims, usePolicies, usePolicy } from "../hooks/useCustomerData";
 import type { Claim, ClaimStatus, Policy, PolicyStatus, PolicyType } from "../types";
 
@@ -295,14 +295,37 @@ function ClaimTimeline({ claim }: { claim: ReturnType<typeof useClaim>["data"] }
 
 function ClaimDetailsPage() {
   const { id = "" } = useParams();
+  const location = useLocation();
+  const [toastMessage, setToastMessage] = useState(() => {
+    const state: unknown = location.state;
+    if (typeof state !== "object" || state === null || !("claimToast" in state)) return null;
+    return typeof state.claimToast === "string" ? state.claimToast : null;
+  });
+  const [toastTone, setToastTone] = useState<"success" | "error">(() => {
+    const state: unknown = location.state;
+    return typeof state === "object" && state !== null && "claimToastTone" in state && state.claimToastTone === "error"
+      ? "error"
+      : "success";
+  });
+  const notification = toastMessage ? (
+    <Toast
+      message={toastMessage}
+      tone={toastTone}
+      onClose={() => {
+        setToastMessage(null);
+        setToastTone("success");
+      }}
+    />
+  ) : null;
   const query = useClaim(id);
 
-  if (query.isPending) return <Spinner label="Loading claim details" />;
-  if (query.isError) return <ErrorMessage message={getErrorMessage(query.error, "claim details")} />;
+  if (query.isPending) return <>{notification}<Spinner label="Loading claim details" /></>;
+  if (query.isError) return <>{notification}<ErrorMessage message={getErrorMessage(query.error, "claim details")} /></>;
   const claim = query.data;
 
   return (
     <div className="space-y-7">
+      {notification}
       <PageHeading eyebrow="Your claim" title="Claim details" description="Review your claim information, status updates, comments, and supporting documents." />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
         <div className="space-y-5">
