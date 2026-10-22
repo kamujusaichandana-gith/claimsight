@@ -121,14 +121,21 @@ function DashboardPage() {
     page: 1,
     limit: 1,
   });
+  const heading = (
+    <PageHeading
+      eyebrow="Your insurance, made simple"
+      title="Your ClaimSight dashboard"
+      description="A clear view of your coverage and the latest activity on your claims."
+    />
+  );
 
   if (policies.isPending || claims.isPending || submittedClaims.isPending || reviewClaims.isPending) {
-    return <Spinner label="Loading your dashboard" />;
+    return <div className="space-y-8">{heading}<Spinner label="Loading your dashboard" /></div>;
   }
-  if (policies.isError) return <ErrorMessage message={getErrorMessage(policies.error, "your dashboard")} />;
-  if (claims.isError) return <ErrorMessage message={getErrorMessage(claims.error, "your dashboard")} />;
-  if (submittedClaims.isError) return <ErrorMessage message={getErrorMessage(submittedClaims.error, "your dashboard")} />;
-  if (reviewClaims.isError) return <ErrorMessage message={getErrorMessage(reviewClaims.error, "your dashboard")} />;
+  if (policies.isError) return <div className="space-y-8">{heading}<ErrorMessage message={getErrorMessage(policies.error, "your dashboard")} /></div>;
+  if (claims.isError) return <div className="space-y-8">{heading}<ErrorMessage message={getErrorMessage(claims.error, "your dashboard")} /></div>;
+  if (submittedClaims.isError) return <div className="space-y-8">{heading}<ErrorMessage message={getErrorMessage(submittedClaims.error, "your dashboard")} /></div>;
+  if (reviewClaims.isError) return <div className="space-y-8">{heading}<ErrorMessage message={getErrorMessage(reviewClaims.error, "your dashboard")} /></div>;
 
   const activePolicies = policies.data.filter((policy) => policy.status === "ACTIVE").length;
   const openClaims =
@@ -137,11 +144,7 @@ function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeading
-        eyebrow="Your insurance, made simple"
-        title="Your ClaimSight dashboard"
-        description="A clear view of your coverage and the latest activity on your claims."
-      />
+      {heading}
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <p className="text-sm font-medium text-slate-500">Active policies</p>
@@ -168,7 +171,7 @@ function DashboardPage() {
         </div>
         <Card padded={false}>
           {recentClaims.length === 0 ? (
-            <EmptyState title="No claims yet" description="When you file a claim, its latest updates will appear here." />
+            <EmptyState title="No claims yet" description="When you file a claim, its latest updates will appear here." headingLevel={3} />
           ) : (
             <div className="divide-y divide-slate-100">
               {recentClaims.map((claim) => <ClaimSummaryRow key={claim.id} claim={claim} />)}
@@ -217,14 +220,17 @@ function PoliciesPage() {
 function PolicyDetailsPage() {
   const { id = "" } = useParams();
   const query = usePolicy(id);
+  const heading = (
+    <PageHeading eyebrow="Your protection" title="Policy details" description="Your policy coverage, premium, and key dates in one place." />
+  );
 
-  if (query.isPending) return <Spinner label="Loading policy details" />;
-  if (query.isError) return <ErrorMessage message={getErrorMessage(query.error, "policy details")} />;
+  if (query.isPending) return <div className="space-y-7">{heading}<Spinner label="Loading policy details" /></div>;
+  if (query.isError) return <div className="space-y-7">{heading}<ErrorMessage message={getErrorMessage(query.error, "policy details")} /></div>;
   const policy = query.data;
 
   return (
     <div className="space-y-7">
-      <PageHeading eyebrow="Your protection" title="Policy details" description="Your policy coverage, premium, and key dates in one place." />
+      {heading}
       <Card className="max-w-3xl">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -318,15 +324,18 @@ function ClaimDetailsPage() {
     />
   ) : null;
   const query = useClaim(id);
+  const heading = (
+    <PageHeading eyebrow="Your claim" title="Claim details" description="Review your claim information, status updates, comments, and supporting documents." />
+  );
 
-  if (query.isPending) return <>{notification}<Spinner label="Loading claim details" /></>;
-  if (query.isError) return <>{notification}<ErrorMessage message={getErrorMessage(query.error, "claim details")} /></>;
+  if (query.isPending) return <div className="space-y-7">{notification}{heading}<Spinner label="Loading claim details" /></div>;
+  if (query.isError) return <div className="space-y-7">{notification}{heading}<ErrorMessage message={getErrorMessage(query.error, "claim details")} /></div>;
   const claim = query.data;
 
   return (
     <div className="space-y-7">
       {notification}
-      <PageHeading eyebrow="Your claim" title="Claim details" description="Review your claim information, status updates, comments, and supporting documents." />
+      {heading}
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
         <div className="space-y-5">
           <Card>
@@ -494,8 +503,14 @@ function ClaimsPageContent({ searchValue }: { searchValue: string }) {
         <Card><EmptyState title="No matching claims" description={searchValue || status ? "Try changing your search or status filter." : "When you file a claim, it will appear here."} /></Card>
       ) : (
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            role="region"
+            aria-label="Claims results table"
+            tabIndex={0}
+          >
             <table className="w-full min-w-[760px] text-left text-sm">
+              <caption className="sr-only">Your claims and their current status</caption>
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th scope="col" className="px-5 py-3"><SortButton field="claimNumber" current={sortBy} order={order} onClick={changeSort}>Claim</SortButton></th>

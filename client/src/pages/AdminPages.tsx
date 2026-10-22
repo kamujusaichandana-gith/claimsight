@@ -109,14 +109,21 @@ function RetryError({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 function ClaimChartEmpty({ description }: { description: string }) {
-  return <EmptyState title="No claims to chart yet" description={description} />;
+  return <EmptyState title="No claims to chart yet" description={description} headingLevel={3} />;
 }
 
 export function AdminDashboardPage() {
   const query = useAdminStats();
-  if (query.isPending) return <Spinner label="Loading claims dashboard" />;
+  const heading = (
+    <PageHeading
+      eyebrow="ClaimsSight team"
+      title="Claims dashboard"
+      description="Track claims activity, monitor status progress, and open a claim for review."
+    />
+  );
+  if (query.isPending) return <div className="space-y-8">{heading}<Spinner label="Loading claims dashboard" /></div>;
   if (query.isError) {
-    return <RetryError message="We couldn't load claim statistics. Please try again." onRetry={() => void query.refetch()} />;
+    return <div className="space-y-8">{heading}<RetryError message="We couldn't load claim statistics. Please try again." onRetry={() => void query.refetch()} /></div>;
   }
 
   const statusCounts = new Map(query.data.claimsByStatus.map(({ status, count }) => [status, count]));
@@ -136,11 +143,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeading
-        eyebrow="ClaimsSight team"
-        title="Claims dashboard"
-        description="Track claims activity, monitor status progress, and open a claim for review."
-      />
+      {heading}
       <section aria-label="Claim totals" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {statItems.map((item) => (
           <Card key={item.label}>
@@ -355,7 +358,12 @@ function AdminClaimsTableContent({ searchValue }: { searchValue: string }) {
         /></Card>
       ) : (
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            role="region"
+            aria-label="Claims results table"
+            tabIndex={0}
+          >
             <table className="w-full min-w-[850px] text-left text-sm">
               <caption className="sr-only">Claims submitted by customers</caption>
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -573,10 +581,18 @@ function ClaimReviewPage() {
     statusMutation.mutate(targetStatus);
   }
 
-  if (claimQuery.isPending) return <Spinner label="Loading claim review" />;
+  if (claimQuery.isPending) {
+    return (
+      <div className="space-y-7">
+        <PageHeading eyebrow="Claim review" title="Claim review" description="Loading claim details for review." />
+        <Spinner label="Loading claim review" />
+      </div>
+    );
+  }
   if (claimQuery.isError) {
     return (
       <div className="space-y-5">
+        <PageHeading eyebrow="Claim review" title="Claim review" description="Review the information, supporting documents, and status history for this customer claim." />
         <Link to="/admin/claims" className="text-sm font-semibold text-teal-800 hover:text-teal-950">← Back to all claims</Link>
         <RetryError message={readableApiError(claimQuery.error, "We couldn't load this claim. Please try again.")} onRetry={() => void claimQuery.refetch()} />
       </div>

@@ -38,7 +38,7 @@ export function IncidentStep({
           maxLength={5000}
           aria-invalid={Boolean(errors.description)}
           aria-describedby={errors.description ? "description-error description-count" : "description-count"}
-          className={`rounded-xl border bg-white px-3.5 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10 ${
+          className={`rounded-xl border bg-white px-3.5 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-500 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10 ${
             errors.description ? "border-rose-400" : "border-slate-200"
           }`}
           placeholder="Include the key details of the incident."

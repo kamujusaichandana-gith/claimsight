@@ -29,6 +29,15 @@ const ClaimReviewPage = lazy(() =>
 
 const queryClient = new QueryClient();
 
+function RouteLoading({ title, label }: { title: string; label: string }) {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{title}</h1>
+      <Spinner label={label} />
+    </div>
+  );
+}
+
 function HomeRedirect() {
   const { user } = useAuth();
   return <Navigate to={user?.role === "ADMIN" ? "/admin" : "/dashboard"} replace />;
@@ -68,9 +77,9 @@ function App() {
                   <Route path="claims/:id" element={<ClaimDetailsPage />} />
                 </Route>
                 <Route element={<RoleRoute role="ADMIN" />}>
-                  <Route path="admin" element={<Suspense fallback={<Spinner label="Loading admin dashboard" />}><AdminDashboardPage /></Suspense>} />
-                  <Route path="admin/claims" element={<Suspense fallback={<Spinner label="Loading claims" />}><AdminClaimsPage /></Suspense>} />
-                  <Route path="admin/claims/:id" element={<Suspense fallback={<Spinner label="Loading claim review" />}><ClaimReviewPage /></Suspense>} />
+                  <Route path="admin" element={<Suspense fallback={<RouteLoading title="Claims dashboard" label="Loading admin dashboard" />}><AdminDashboardPage /></Suspense>} />
+                  <Route path="admin/claims" element={<Suspense fallback={<RouteLoading title="All claims" label="Loading claims" />}><AdminClaimsPage /></Suspense>} />
+                  <Route path="admin/claims/:id" element={<Suspense fallback={<RouteLoading title="Claim review" label="Loading claim review" />}><ClaimReviewPage /></Suspense>} />
                 </Route>
               </Route>
               <Route path="*" element={<NotFoundPage />} />

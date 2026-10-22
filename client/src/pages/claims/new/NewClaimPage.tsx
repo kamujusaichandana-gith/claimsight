@@ -188,9 +188,21 @@ export function NewClaimPage() {
     });
   }
 
-  if (policiesQuery.isPending) return <Spinner label="Loading your active policies" />;
+  if (policiesQuery.isPending) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">File a claim</h1>
+        <Spinner label="Loading your active policies" />
+      </div>
+    );
+  }
   if (policiesQuery.isError) {
-    return <ErrorMessage message="We couldn't load your policies. Please try again before filing a claim." />;
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">File a claim</h1>
+        <ErrorMessage message="We couldn't load your policies. Please try again before filing a claim." />
+      </div>
+    );
   }
 
   const activePolicies = policiesQuery.data.filter((policy) => policy.status === "ACTIVE");
@@ -260,7 +272,7 @@ export function NewClaimPage() {
           <h2
             ref={headingRef}
             tabIndex={-1}
-            className="mb-5 text-xl font-semibold text-slate-950 focus:outline-none"
+            className="mb-5 rounded text-xl font-semibold text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2"
           >
             {stepTitles[step]}
           </h2>

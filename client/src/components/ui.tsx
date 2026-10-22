@@ -60,7 +60,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         id={inputId}
         aria-invalid={Boolean(error)}
         aria-describedby={error || hint ? helpId : undefined}
-        className={`min-h-11 rounded-xl border bg-white px-3.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10 disabled:bg-slate-50 ${error ? "border-rose-400" : "border-slate-200"} ${className}`}
+        className={`min-h-11 rounded-xl border bg-white px-3.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-500 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10 disabled:bg-slate-50 ${error ? "border-rose-400" : "border-slate-200"} ${className}`}
         {...props}
       />
       {(error || hint) && (
@@ -170,9 +170,12 @@ interface EmptyStateProps {
   title: string;
   description: string;
   action?: ReactNode;
+  headingLevel?: 2 | 3;
 }
 
-export function EmptyState({ title, description, action }: EmptyStateProps) {
+export function EmptyState({ title, description, action, headingLevel = 2 }: EmptyStateProps) {
+  const Heading = headingLevel === 3 ? "h3" : "h2";
+
   return (
     <div className="flex flex-col items-center px-5 py-12 text-center">
       <span className="mb-4 grid size-12 place-items-center rounded-2xl bg-teal-50 text-teal-800" aria-hidden="true">
@@ -181,7 +184,7 @@ export function EmptyState({ title, description, action }: EmptyStateProps) {
           <path d="M14 4v5h4M8.5 13h7M8.5 16.5h5" />
         </svg>
       </span>
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <Heading className="text-base font-semibold text-slate-900">{title}</Heading>
       <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">{description}</p>
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -222,7 +225,7 @@ export function Toast({ message, onClose, tone = "success" }: ToastProps) {
         type="button"
         onClick={onClose}
         aria-label="Dismiss notification"
-        className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+        className="rounded-md p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
       >
         ×
       </button>

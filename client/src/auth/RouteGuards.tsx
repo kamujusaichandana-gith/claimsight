@@ -10,8 +10,11 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Spinner label="Checking your account" />
+      <div className="space-y-6">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Checking your account</h1>
+        <div className="flex min-h-[30vh] items-center justify-center">
+          <Spinner label="Checking your account" />
+        </div>
       </div>
     );
   }
@@ -42,8 +45,11 @@ export function GuestRoute({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Spinner label="Checking your account" />
+      <div className="space-y-6">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">Checking your account</h1>
+        <div className="flex min-h-[30vh] items-center justify-center">
+          <Spinner label="Checking your account" />
+        </div>
       </div>
     );
   }

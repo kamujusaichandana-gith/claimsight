@@ -24,6 +24,11 @@ select {
   -webkit-tap-highlight-color: transparent;
 }
 
+:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
+}
+
 ::selection {
   color: #103e3b;
   background: #cce6de;

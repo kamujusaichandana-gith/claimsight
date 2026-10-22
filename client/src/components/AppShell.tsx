@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "./ui";
 
@@ -14,6 +14,21 @@ const adminLinks = [
   { to: "/admin/claims", label: "Claim review" },
 ];
 
+function titleForPath(pathname: string): string {
+  if (pathname === "/login") return "Sign in";
+  if (pathname === "/register") return "Create account";
+  if (pathname === "/dashboard") return "Dashboard";
+  if (pathname === "/policies") return "My policies";
+  if (/^\/policies\/[^/]+$/.test(pathname)) return "Policy details";
+  if (pathname === "/claims") return "My claims";
+  if (pathname === "/claims/new") return "File a claim";
+  if (/^\/claims\/[^/]+$/.test(pathname)) return "Claim details";
+  if (pathname === "/admin") return "Claims dashboard";
+  if (pathname === "/admin/claims") return "All claims";
+  if (/^\/admin\/claims\/[^/]+$/.test(pathname)) return "Claim review";
+  return "Page not found";
+}
+
 function BrandMark() {
   return (
     <span className="grid size-9 place-items-center rounded-xl bg-teal-800 text-white shadow-sm">
@@ -27,10 +42,16 @@ function BrandMark() {
 
 export function AppShell() {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const isAdmin = user?.role === "ADMIN";
   const links = isAdmin ? adminLinks : customerLinks;
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    document.title = `${titleForPath(location.pathname)} | ClaimSight`;
+  }, [location.pathname]);
 
   function handleLogout() {
     logout();
@@ -44,11 +65,19 @@ export function AppShell() {
     <div className="flex min-h-screen flex-col bg-[#f6f8f7] text-slate-900">
       <a
         href="#main-content"
-        className="sr-only z-50 rounded-lg bg-white p-3 text-teal-900 focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+        className="sr-only z-50 rounded-lg bg-white p-3 text-teal-900 shadow-lg focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
       >
-        Skip to content
+        Skip to main content
       </a>
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+      <header
+        className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur"
+        onKeyDown={(event) => {
+          if (menuOpen && event.key === "Escape") {
+            setMenuOpen(false);
+            menuButtonRef.current?.focus();
+          }
+        }}
+      >
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to={homeLink} className="flex shrink-0 items-center gap-2.5" aria-label="ClaimSight home">
             <BrandMark />
@@ -65,7 +94,7 @@ export function AppShell() {
                   to={link.to}
                   end
                   className={({ isActive }) =>
-                    `rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`
+                    `rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`
                   }
                 >
                   {link.label}
@@ -98,10 +127,12 @@ export function AppShell() {
           </div>
 
           <button
+            ref={menuButtonRef}
             type="button"
             className="grid size-10 place-items-center rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 md:hidden"
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
             onClick={() => setMenuOpen((open) => !open)}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -110,7 +141,11 @@ export function AppShell() {
           </button>
         </div>
         {menuOpen && (
-          <nav aria-label="Mobile navigation" className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
+          <nav
+            id="mobile-navigation"
+            aria-label="Mobile navigation"
+            className="border-t border-slate-100 bg-white px-4 py-3 md:hidden"
+          >
             <div className="mx-auto grid max-w-7xl gap-1">
               {user ? (
                 <>
@@ -121,7 +156,7 @@ export function AppShell() {
                       end
                       onClick={() => setMenuOpen(false)}
                       className={({ isActive }) =>
-                        `rounded-lg px-3.5 py-3 text-sm font-medium ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50"}`
+                        `rounded-lg px-3.5 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 ${isActive ? "bg-teal-50 text-teal-900" : "text-slate-600 hover:bg-slate-50"}`
                       }
                     >
                       {link.label}
@@ -136,8 +171,8 @@ export function AppShell() {
                 </>
               ) : (
                 <>
-                  <NavLink to="/login" onClick={() => setMenuOpen(false)} className="rounded-lg px-3.5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50">Sign in</NavLink>
-                  <NavLink to="/register" onClick={() => setMenuOpen(false)} className="rounded-lg px-3.5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50">Create account</NavLink>
+                  <NavLink to="/login" onClick={() => setMenuOpen(false)} className="rounded-lg px-3.5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">Sign in</NavLink>
+                  <NavLink to="/register" onClick={() => setMenuOpen(false)} className="rounded-lg px-3.5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">Create account</NavLink>
                 </>
               )}
             </div>
@@ -145,7 +180,7 @@ export function AppShell() {
         )}
       </header>
 
-      <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 focus:outline-none sm:px-6 sm:py-10 lg:px-8">
         <Outlet />
       </main>
 

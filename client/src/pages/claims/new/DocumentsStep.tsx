@@ -21,13 +21,20 @@ export function DocumentsStep({
 
   return (
     <div className="grid gap-4">
+      <label htmlFor="supporting-documents" id="upload-label" className="text-sm font-medium text-slate-700">
+        Supporting documents (optional)
+      </label>
       <input
         ref={fileInput}
+        id="supporting-documents"
         className="sr-only"
+        tabIndex={-1}
         type="file"
         accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
         multiple
-        aria-label="Choose supporting documents"
+        aria-labelledby="upload-label"
+        aria-invalid={errors.length > 0}
+        aria-describedby={`upload-instructions${errors.length > 0 ? " upload-errors" : ""}`}
         onChange={(event) => {
           if (event.currentTarget.files) onAddFiles(event.currentTarget.files);
           event.currentTarget.value = "";
@@ -36,12 +43,8 @@ export function DocumentsStep({
       <button
         type="button"
         onClick={openPicker}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openPicker();
-          }
-        }}
+        aria-describedby={`upload-instructions${errors.length > 0 ? " upload-errors" : ""}`}
+        aria-invalid={errors.length > 0}
         onDragOver={(event) => {
           event.preventDefault();
           setIsDragging(true);
@@ -59,9 +62,11 @@ export function DocumentsStep({
         <span className="text-sm font-semibold text-slate-900">Drop files here or choose files</span>
         <span className="mt-1 text-sm text-slate-500">PDF, JPG, or PNG · up to 5 MB per file</span>
       </button>
-      <p className="text-sm text-slate-600">Documents are optional. You can also add them later from your claim.</p>
+      <p id="upload-instructions" className="text-sm text-slate-600">
+        PDF, JPG, or PNG, up to 5 MB per file. You can add documents later from your claim.
+      </p>
       {errors.length > 0 && (
-        <ul className="grid gap-1 text-sm text-rose-700" role="alert" aria-live="polite">
+        <ul id="upload-errors" className="grid gap-1 text-sm text-rose-700" role="alert">
           {errors.map((error, index) => <li key={`${error}-${index}`}>{error}</li>)}
         </ul>
       )}
