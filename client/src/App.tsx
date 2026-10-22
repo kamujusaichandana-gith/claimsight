@@ -1,10 +1,12 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { useAuth } from "./auth/useAuth";
 import { GuestRoute, ProtectedRoute, RoleRoute } from "./auth/RouteGuards";
 import { AppShell } from "./components/AppShell";
-import { NotFoundPage, PlaceholderPage } from "./pages/PlaceholderPages";
+import { Spinner } from "./components/ui";
+import { NotFoundPage } from "./pages/PlaceholderPages";
 import { LoginPage, RegisterPage } from "./pages/AuthPages";
 import {
   ClaimDetailsPage,
@@ -14,6 +16,16 @@ import {
   PolicyDetailsPage,
 } from "./pages/CustomerPages";
 import { NewClaimPage } from "./pages/claims/new/NewClaimPage";
+
+const AdminDashboardPage = lazy(() =>
+  import("./pages/AdminPages").then(({ AdminDashboardPage: page }) => ({ default: page })),
+);
+const AdminClaimsPage = lazy(() =>
+  import("./pages/AdminPages").then(({ AdminClaimsPage: page }) => ({ default: page })),
+);
+const ClaimReviewPage = lazy(() =>
+  import("./pages/AdminPages").then(({ ClaimReviewPage: page }) => ({ default: page })),
+);
 
 const queryClient = new QueryClient();
 
@@ -56,9 +68,9 @@ function App() {
                   <Route path="claims/:id" element={<ClaimDetailsPage />} />
                 </Route>
                 <Route element={<RoleRoute role="ADMIN" />}>
-                  <Route path="admin" element={<PlaceholderPage pageKey="/admin" />} />
-                  <Route path="admin/claims" element={<PlaceholderPage pageKey="/admin/claims" />} />
-                  <Route path="admin/claims/:id" element={<PlaceholderPage pageKey="/admin/claims/:id" />} />
+                  <Route path="admin" element={<Suspense fallback={<Spinner label="Loading admin dashboard" />}><AdminDashboardPage /></Suspense>} />
+                  <Route path="admin/claims" element={<Suspense fallback={<Spinner label="Loading claims" />}><AdminClaimsPage /></Suspense>} />
+                  <Route path="admin/claims/:id" element={<Suspense fallback={<Spinner label="Loading claim review" />}><ClaimReviewPage /></Suspense>} />
                 </Route>
               </Route>
               <Route path="*" element={<NotFoundPage />} />
