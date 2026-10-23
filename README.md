@@ -155,9 +155,17 @@ The names below are configured through environment files for local work and host
 
 ## Screenshots
 
-- Customer dashboard: _Screenshot placeholder._
-- Claim details: _Screenshot placeholder._
-- Admin dashboard: _Screenshot placeholder._
+### Customer dashboard
+
+![Customer dashboard](docs/screenshots/customer-dashboard.png)
+
+### Claim details
+
+![Claim details with status timeline](docs/screenshots/claim-details.png)
+
+### Admin dashboard
+
+![Admin dashboard with charts](docs/screenshots/admin-dashboard.png)
 
 ## Deployment
 
