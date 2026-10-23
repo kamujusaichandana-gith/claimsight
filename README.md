@@ -159,4 +159,4 @@ The names below are configured through environment files for local work and host
 
 ## Deployment
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the step-by-step Neon, Render, and Vercel deployment guide, including the manual production demo-data seed procedure.
+For Render, use the build command `npm ci --include=dev && npm run build`; `--include=dev` installs the `@types/*` packages required by the TypeScript build when `NODE_ENV=production`. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the step-by-step Neon, Render, and Vercel deployment guide, including the manual production demo-data seed procedure.

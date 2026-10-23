@@ -18,11 +18,11 @@ This guide deploys PostgreSQL to Neon, the API to Render, and the React single-p
 
    | Setting | Value |
    | --- | --- |
-   | Build Command | `npm ci && npm run build` |
+   | Build Command | `npm ci --include=dev && npm run build` |
    | Start Command | `npm start` |
    | Health Check Path | `/health` |
 
-   The build command runs `prisma generate` before the TypeScript compilation. Set `DATABASE_URL` in Render before the first build because Prisma 7 reads it from `prisma.config.ts` during generation. The start command runs `prisma migrate deploy` before starting the compiled `dist/index.js` server. Migrations run automatically; demo seeding does not.
+   `--include=dev` installs the `@types/*` devDependencies needed by the TypeScript build even when `NODE_ENV=production`. The build command runs `prisma generate` before the TypeScript compilation. Set `DATABASE_URL` in Render before the first build because Prisma 7 reads it from `prisma.config.ts` during generation. The start command runs `prisma migrate deploy` before starting the compiled `dist/index.js` server. Migrations run automatically; demo seeding does not.
 
 4. Add these environment variables in Render. Set `CLIENT_ORIGIN` to the exact Vercel origin (scheme and host only). Multiple allowed origins can be separated by commas.
 
