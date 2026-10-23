@@ -6,13 +6,13 @@ import { AppError } from '../lib/app-error.js'
 function requiredEnvironmentVariable(name: string): string {
   const value = process.env[name]
   if (!value) {
-    throw new Error(`${name} is required`)
+    throw new Error(`${name} is required to start the ClaimSight API`)
   }
   return value
 }
 
 const jwtSecret = requiredEnvironmentVariable('JWT_SECRET')
-const jwtExpiresIn = requiredEnvironmentVariable('JWT_EXPIRES_IN')
+const jwtExpiresIn = process.env.JWT_EXPIRES_IN ?? '1h'
 
 export function createAccessToken(userId: string): string {
   return jwt.sign({ sub: userId }, jwtSecret, {

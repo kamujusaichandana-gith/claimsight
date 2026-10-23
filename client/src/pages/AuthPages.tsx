@@ -71,21 +71,33 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [apiError, setApiError] = useState<string | null>(null);
+  const [apiSlow, setApiSlow] = useState(false);
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = handleSubmit(async (values) => {
     setApiError(null);
+    setApiSlow(false);
+    const slowResponseTimer = window.setTimeout(() => setApiSlow(true), 5000);
     try {
       const user = await login(values);
       navigate(getReturnPath(location.state, user), { replace: true });
     } catch (error) {
       setApiError(safeApiError(error, "login"));
+    } finally {
+      window.clearTimeout(slowResponseTimer);
     }
   });
+
+  function submitDemoLogin(email: string, password: string) {
+    setValue("email", email, { shouldValidate: true });
+    setValue("password", password, { shouldValidate: true });
+    void onSubmit();
+  }
 
   return (
     <div className="mx-auto grid max-w-5xl gap-8 py-4 lg:grid-cols-[1fr_0.85fr] lg:items-center">
@@ -102,6 +114,11 @@ export function LoginPage() {
           </div>
           {apiError && (
             <Toast message={apiError} tone="error" onClose={() => setApiError(null)} />
+          )}
+          {apiSlow && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950" role="status">
+              The demo server may be waking up, this can take up to a minute.
+            </p>
           )}
           <Input
             label="Email address"
@@ -120,6 +137,30 @@ export function LoginPage() {
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? <Spinner label="Signing in" /> : "Sign in"}
           </Button>
+          <section className="grid gap-3 border-t border-slate-100 pt-5" aria-labelledby="demo-access-heading">
+            <div>
+              <h3 id="demo-access-heading" className="text-sm font-semibold text-slate-900">Demo access</h3>
+              <p className="mt-1 text-sm text-slate-500">This is a demo with fictional data.</p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => submitDemoLogin("avery.brooks@example.test", "CustomerDemo123!")}
+              >
+                Try as customer
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => submitDemoLogin("admin@claimsight.local", "AdminDemo123!")}
+              >
+                Try as admin
+              </Button>
+            </div>
+          </section>
           <p className="text-center text-sm text-slate-600">
             New to ClaimSight?{" "}
             <Link to="/register" className="font-semibold text-teal-800 hover:text-teal-950">Create an account</Link>

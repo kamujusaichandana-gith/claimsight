@@ -1,72 +1,162 @@
 # ClaimSight
 
-ClaimSight is a full-stack insurance policy and claims portal. This repository contains a React client, an Express API, and a PostgreSQL database with the pgvector extension image.
+ClaimSight is a full-stack insurance policy and claims portal where fictional customers can review coverage, file and track claims, and share supporting documents while administrators review claims, update statuses, and communicate with customers.
 
-## Requirements
+## Live demo
 
-- Node.js 20.19+ and npm
-- Docker with Docker Compose (for the containerized setup)
+[Open the live ClaimSight demo](https://your-vercel-deployment.example) _(deployment URL placeholder)_
 
-## Run with Docker
+### Demo logins
 
-Create the Compose environment file and set unique local secrets:
+| Role | Email | Password |
+| --- | --- | --- |
+| Customer | `avery.brooks@example.test` | `CustomerDemo123!` |
+| Admin | `admin@claimsight.local` | `AdminDemo123!` |
 
-```sh
-cp .env.example .env
+All records and people in the demo are fictional. These credentials are public demo accounts; do not use them for real or sensitive information.
+
+## Features
+
+- Customer registration and sign-in with role-based access.
+- Customer dashboards for policies and claims.
+- Claim submission with PDF, JPG, or PNG supporting documents.
+- Claim status timeline and claim comments.
+- Admin dashboard charts, claim search and filters, status updates, and comments.
+- Authenticated document downloads with a clear response when a file is no longer on disk.
+- Responsive React interface with loading, empty, and error states.
+
+## Tech stack
+
+- **Client:** React 18, TypeScript, Vite, React Router, TanStack Query, React Hook Form, Zod, Tailwind CSS, Recharts.
+- **Server:** Node.js, Express, TypeScript, Prisma 7, PostgreSQL, JWT, bcrypt, Zod.
+- **Hosting:** Vercel (client), Render (server), and Neon (managed PostgreSQL).
+- **Local containers:** Docker Compose and PostgreSQL.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser[Browser] -->|HTTPS| Vercel[Vercel: React SPA]
+    Vercel -->|JSON API, JWT| Render[Render: Express API]
+    Render -->|Prisma / PostgreSQL| Neon[Neon: PostgreSQL]
+    Render -->|Temporary local disk| Uploads[Claim document uploads]
 ```
 
-Edit `.env` and replace `POSTGRES_PASSWORD` and `JWT_SECRET` with locally generated values. Use a URL-safe value for `POSTGRES_PASSWORD` (for example, generate one with `openssl rand -hex 32`) because it is part of the API's PostgreSQL connection URL. Then build and start the database, API, and client:
+## Run locally
 
-```sh
-docker compose up --build
-```
+Requirements: Node.js 20.19+ and npm. For Docker, also install Docker with Compose.
 
-If you already have a `postgres_data` volume from an earlier setup, `POSTGRES_PASSWORD` must match the password used when that database was first initialized; changing the Compose environment does not rotate the stored database password.
+### With Docker
 
-Compose waits for PostgreSQL to become healthy and runs `prisma migrate deploy` before starting the API. The app is available at http://localhost:8080 and the API health check at http://localhost:3000/health. PostgreSQL data and uploaded claim documents persist in the named `postgres_data` and `uploads_data` volumes.
+1. Copy the root environment example and set unique local values:
 
-Demo data is **not** loaded automatically. After the services are running, seed the fictional demo accounts and data separately:
+   ```sh
+   cp .env.example .env
+   ```
+
+   Use a URL-safe `POSTGRES_PASSWORD`, because Compose includes it in the API's PostgreSQL connection string.
+
+2. Start the database, API, and client:
+
+   ```sh
+   docker compose up --build
+   ```
+
+3. Open the client at `http://localhost:8080`. The API health endpoint is `http://localhost:3000/health`.
+
+Demo data is not loaded automatically. To load it into the local database, run:
 
 ```sh
 docker compose exec server npm run prisma:seed
 ```
 
-Stop the services with `docker compose down`. To also remove persisted database and upload data, run `docker compose down --volumes`.
+Stop the services with `docker compose down`. Use `docker compose down --volumes` only when you also intend to remove the local database and upload volumes.
 
-## Run locally without Docker
+### Without Docker
 
-Install Node.js 20.19+ and a local PostgreSQL instance with the `pgvector` extension. From the repository root, install dependencies in each app:
+1. Start a local PostgreSQL instance.
+2. Copy the server and client environment examples, then set the database connection and local API URL:
 
-```sh
-cd server && npm ci
-cd ../client && npm ci
-```
+   ```sh
+   cp server/.env.example server/.env
+   cp client/.env.example client/.env
+   ```
 
-Configure `server/.env` (see `server/.env.example`) with the local PostgreSQL connection string and a strong `JWT_SECRET`. Configure `client/.env` as needed (see `client/.env.example`); its default API URL is `http://localhost:3000`. Create the schema and optionally load the fictional demo data:
+3. Install dependencies and prepare the database:
 
-```sh
-cd server
-npm run prisma:migrate -- --name init
-npm run prisma:seed
-```
+   ```sh
+   cd server && npm ci
+   npm run prisma:migrate -- --name init
+   npm run prisma:seed
+   ```
 
-Run the API and client in separate terminals:
+4. In one terminal, start the API:
 
-```sh
-cd server && npm run dev
-```
+   ```sh
+   cd server && npm run dev
+   ```
 
-```sh
-cd client && npm run dev
-```
+5. In another terminal, start the client:
 
-The local client is available at http://localhost:5173 and the API health check at http://localhost:3000/health.
+   ```sh
+   cd client && npm ci && npm run dev
+   ```
 
-## Demo logins
+The client runs at `http://localhost:5173`; the API health endpoint is `http://localhost:3000/health`. The local server environment must allow the client origin with `CLIENT_ORIGIN`.
 
-These fictional accounts are available after seeding:
+## API overview
 
-- Admin: `admin@claimsight.local` / `AdminDemo123!`
-- Customers: `avery.brooks@example.test`, `jordan.patel@example.test`, or `riley.thompson@example.test` / `CustomerDemo123!`
+All application endpoints are prefixed by `/api`. Protected routes require a bearer token from login or registration.
 
-Do not use these credentials outside local development.
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Register a customer account |
+| `POST` | `/api/auth/login` | Sign in |
+| `GET` | `/api/auth/me` | Get the signed-in user |
+| `GET` | `/api/policies` | List the signed-in customer's policies |
+| `GET` | `/api/policies/:id` | Get a policy owned by the signed-in customer |
+| `GET`, `POST` | `/api/claims` | List claims or submit a claim |
+| `GET` | `/api/claims/:id` | Get a claim owned by the signed-in customer |
+| `POST` | `/api/claims/:id/documents` | Upload a claim document |
+| `GET` | `/api/claims/:claimId/documents/:documentId` | Download a claim document |
+| `GET` | `/api/admin/claims` | List and filter claims (admin) |
+| `GET` | `/api/admin/claims/:id` | Get claim details (admin) |
+| `GET` | `/api/admin/claims/:claimId/documents/:documentId` | Download a claim document (admin) |
+| `PATCH` | `/api/admin/claims/:id/status` | Update a claim status (admin) |
+| `POST` | `/api/admin/claims/:id/comments` | Add a claim comment (admin) |
+| `GET` | `/api/admin/stats` | Get dashboard statistics (admin) |
+| `GET` | `/health` | Check API and database availability |
+
+## Environment variable reference
+
+The names below are configured through environment files for local work and hosting-provider settings for deployment. Do not commit real credentials.
+
+| Component | Variable names |
+| --- | --- |
+| Server | `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN` |
+| Client | `VITE_API_URL` |
+| Docker Compose | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VITE_API_URL` |
+
+## Known limitations
+
+- Free Render services may sleep while idle. The first request after sleep can take up to a minute.
+- Uploaded files are stored on the server's local disk and are not persistent on free hosting. A deployment or restart may remove files; their database records remain and downloading a missing file returns 404.
+- All demo data, policies, claims, people, and credentials are fictional.
+
+## Future improvements
+
+- Move claim documents to durable object storage.
+- Add a policy-question assistant with answers grounded in policy documents.
+- Add automated deployment previews and production monitoring.
+- Add more end-to-end coverage for customer and administrator workflows.
+- Expand reporting, accessibility audits, and operational dashboards.
+
+## Screenshots
+
+- Customer dashboard: _Screenshot placeholder._
+- Claim details: _Screenshot placeholder._
+- Admin dashboard: _Screenshot placeholder._
+
+## Deployment
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the step-by-step Neon, Render, and Vercel deployment guide, including the manual production demo-data seed procedure.

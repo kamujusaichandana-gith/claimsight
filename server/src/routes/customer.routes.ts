@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import * as customerController from '../controllers/customer.controller.js'
+import { downloadClaimDocument } from '../controllers/document.controller.js'
 import {
   claimDocumentUpload,
   validateClaimDocumentContent,
@@ -21,6 +22,10 @@ customerRouter.post(
 )
 customerRouter.get('/claims', customerController.listClaims)
 customerRouter.get('/claims/:id', customerController.getClaim)
+customerRouter.get(
+  '/claims/:claimId/documents/:documentId',
+  downloadClaimDocument,
+)
 customerRouter.post(
   '/claims/:id/documents',
   customerController.ensureOwnedClaim,

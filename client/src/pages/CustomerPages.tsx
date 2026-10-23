@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Button, Card, EmptyState, ErrorMessage, Spinner, Badge, Toast } from "../components/ui";
+import { ClaimDocumentDownload } from "../components/ClaimDocumentDownload";
 import { useClaim, useClaims, usePolicies, usePolicy } from "../hooks/useCustomerData";
 import type { Claim, ClaimStatus, Policy, PolicyStatus, PolicyType } from "../types";
 
@@ -380,8 +381,16 @@ function ClaimDetailsPage() {
               <ul className="mt-4 divide-y divide-slate-100">
                 {claim.documents.map((document) => (
                   <li key={document.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
-                    <span className="break-all text-sm font-medium text-slate-800">{document.fileName}</span>
-                    <time className="text-xs text-slate-500" dateTime={document.uploadedAt}>Uploaded {formatDate(document.uploadedAt)}</time>
+                    <div>
+                      <span className="break-all text-sm font-medium text-slate-800">{document.fileName}</span>
+                      <time className="ml-2 text-xs text-slate-500" dateTime={document.uploadedAt}>Uploaded {formatDate(document.uploadedAt)}</time>
+                    </div>
+                    <ClaimDocumentDownload
+                      claimId={claim.id}
+                      documentId={document.id}
+                      fileName={document.fileName}
+                      routePrefix="/api/claims"
+                    />
                   </li>
                 ))}
               </ul>

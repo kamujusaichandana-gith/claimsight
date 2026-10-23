@@ -12,7 +12,7 @@ COPY prisma ./prisma
 COPY prisma.config.ts tsconfig.json ./
 COPY src ./src
 
-ENV DATABASE_URL=postgresql://claimsight:claimsight@localhost:5432/claimsight?schema=public
+ENV DATABASE_URL=postgresql://build:build@database.invalid:5432/build?schema=public
 RUN npx prisma generate
 RUN npm run build
 

@@ -13,6 +13,7 @@ import {
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { apiClient } from "../api/client";
+import { ClaimDocumentDownload } from "../components/ClaimDocumentDownload";
 import { Badge, Button, Card, EmptyState, ErrorMessage, Spinner } from "../components/ui";
 import { useAdminClaim, useAdminClaims, useAdminStats } from "../hooks/useAdminData";
 import type { AdminClaimDetails, ClaimStatus, PolicyType } from "../types";
@@ -165,7 +166,7 @@ export function AdminDashboardPage() {
                 <BarChart data={chartStatuses} margin={{ top: 8, right: 12, bottom: 52, left: 0 }} accessibilityLayer>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="status" angle={-25} textAnchor="end" interval={0} height={68} tick={{ fontSize: 11 }} label={{ value: "Claim status", position: "insideBottom", offset: -10 }} />
-                  <YAxis allowDecimals={false} width={52} label={{ value: "Number of claims", angle: -90, position: "insideLeft" }} />
+                  <YAxis allowDecimals={false} width={52} label={{ value: "Claims", angle: -90, position: "insideLeft" }} />
                   <Tooltip formatter={(value) => [value, "Claims"]} />
                   <Bar dataKey="count" name="Claims" fill="#0f766e" radius={[5, 5, 0, 0]} />
                 </BarChart>
@@ -185,7 +186,7 @@ export function AdminDashboardPage() {
                 <BarChart data={monthlyClaims} margin={{ top: 8, right: 12, bottom: 8, left: 0 }} accessibilityLayer>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} label={{ value: "Month", position: "insideBottom", offset: -5 }} />
-                  <YAxis allowDecimals={false} width={52} label={{ value: "Number of claims", angle: -90, position: "insideLeft" }} />
+                  <YAxis allowDecimals={false} width={52} label={{ value: "Claims", angle: -90, position: "insideLeft" }} />
                   <Tooltip formatter={(value) => [value, "Claims"]} />
                   <Bar dataKey="count" name="Claims" fill="#115e59" radius={[5, 5, 0, 0]} />
                 </BarChart>
@@ -660,8 +661,16 @@ function ClaimReviewPage() {
               <ul className="mt-4 divide-y divide-slate-100">
                 {claim.documents.map((document) => (
                   <li key={document.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
-                    <span className="break-all text-sm font-medium text-slate-800">{document.fileName}</span>
-                    <time className="text-xs text-slate-500" dateTime={document.uploadedAt}>Uploaded {formatDate(document.uploadedAt)}</time>
+                    <div>
+                      <span className="break-all text-sm font-medium text-slate-800">{document.fileName}</span>
+                      <time className="ml-2 text-xs text-slate-500" dateTime={document.uploadedAt}>Uploaded {formatDate(document.uploadedAt)}</time>
+                    </div>
+                    <ClaimDocumentDownload
+                      claimId={claim.id}
+                      documentId={document.id}
+                      fileName={document.fileName}
+                      routePrefix="/api/admin/claims"
+                    />
                   </li>
                 ))}
               </ul>

@@ -88,6 +88,8 @@ Supported `status` values are `SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED
 
 `POST /api/claims/:id/documents` accepts `multipart/form-data` with a single file field named `file`. Only PDF, JPG, and PNG MIME types with matching file signatures are accepted, up to 5 MiB. Files are stored in `server/uploads` under a randomly generated filename; the original filename is not stored. Success returns `201 Created` with `{ "document": { ... } }`; unsupported files return `400`, oversized files return `413`, and a claim owned by another customer returns `404`.
 
+`GET /api/claims/:claimId/documents/:documentId` downloads a document belonging to a claim owned by the authenticated customer. Administrators can download documents with `GET /api/admin/claims/:claimId/documents/:documentId`. Both endpoints return `404` if the document is not available to the caller or if its file no longer exists on disk. Free hosting does not preserve uploaded files across restarts or redeployments.
+
 ## Customer isolation checks
 
 Create or seed customer A and customer B, each with a policy and claim. Authenticate as A, then verify:
