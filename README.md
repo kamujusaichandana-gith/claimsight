@@ -4,14 +4,16 @@ ClaimSight is a full-stack insurance policy and claims portal where fictional cu
 
 ## Live demo
 
-[Open the live ClaimSight demo](https://your-vercel-deployment.example) _(deployment URL placeholder)_
+[Open the live ClaimSight demo](https://claimsight-vert.vercel.app)
+
+The API runs on a free tier and sleeps when idle, so the first load can take up to a minute. Use the "Try as customer" or "Try as admin" buttons on the login page.
 
 ### Demo logins
 
-| Role | Email | Password |
-| --- | --- | --- |
+| Role     | Email                       | Password           |
+| -------- | --------------------------- | ------------------ |
 | Customer | `avery.brooks@example.test` | `CustomerDemo123!` |
-| Admin | `admin@claimsight.local` | `AdminDemo123!` |
+| Admin    | `admin@claimsight.local`    | `AdminDemo123!`    |
 
 All records and people in the demo are fictional. These credentials are public demo accounts; do not use them for real or sensitive information.
 
@@ -108,33 +110,33 @@ The client runs at `http://localhost:5173`; the API health endpoint is `http://l
 
 All application endpoints are prefixed by `/api`. Protected routes require a bearer token from login or registration.
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `POST` | `/api/auth/register` | Register a customer account |
-| `POST` | `/api/auth/login` | Sign in |
-| `GET` | `/api/auth/me` | Get the signed-in user |
-| `GET` | `/api/policies` | List the signed-in customer's policies |
-| `GET` | `/api/policies/:id` | Get a policy owned by the signed-in customer |
-| `GET`, `POST` | `/api/claims` | List claims or submit a claim |
-| `GET` | `/api/claims/:id` | Get a claim owned by the signed-in customer |
-| `POST` | `/api/claims/:id/documents` | Upload a claim document |
-| `GET` | `/api/claims/:claimId/documents/:documentId` | Download a claim document |
-| `GET` | `/api/admin/claims` | List and filter claims (admin) |
-| `GET` | `/api/admin/claims/:id` | Get claim details (admin) |
-| `GET` | `/api/admin/claims/:claimId/documents/:documentId` | Download a claim document (admin) |
-| `PATCH` | `/api/admin/claims/:id/status` | Update a claim status (admin) |
-| `POST` | `/api/admin/claims/:id/comments` | Add a claim comment (admin) |
-| `GET` | `/api/admin/stats` | Get dashboard statistics (admin) |
-| `GET` | `/health` | Check API and database availability |
+| Method        | Endpoint                                           | Description                                  |
+| ------------- | -------------------------------------------------- | -------------------------------------------- |
+| `POST`        | `/api/auth/register`                               | Register a customer account                  |
+| `POST`        | `/api/auth/login`                                  | Sign in                                      |
+| `GET`         | `/api/auth/me`                                     | Get the signed-in user                       |
+| `GET`         | `/api/policies`                                    | List the signed-in customer's policies       |
+| `GET`         | `/api/policies/:id`                                | Get a policy owned by the signed-in customer |
+| `GET`, `POST` | `/api/claims`                                      | List claims or submit a claim                |
+| `GET`         | `/api/claims/:id`                                  | Get a claim owned by the signed-in customer  |
+| `POST`        | `/api/claims/:id/documents`                        | Upload a claim document                      |
+| `GET`         | `/api/claims/:claimId/documents/:documentId`       | Download a claim document                    |
+| `GET`         | `/api/admin/claims`                                | List and filter claims (admin)               |
+| `GET`         | `/api/admin/claims/:id`                            | Get claim details (admin)                    |
+| `GET`         | `/api/admin/claims/:claimId/documents/:documentId` | Download a claim document (admin)            |
+| `PATCH`       | `/api/admin/claims/:id/status`                     | Update a claim status (admin)                |
+| `POST`        | `/api/admin/claims/:id/comments`                   | Add a claim comment (admin)                  |
+| `GET`         | `/api/admin/stats`                                 | Get dashboard statistics (admin)             |
+| `GET`         | `/health`                                          | Check API and database availability          |
 
 ## Environment variable reference
 
 The names below are configured through environment files for local work and hosting-provider settings for deployment. Do not commit real credentials.
 
-| Component | Variable names |
-| --- | --- |
-| Server | `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN` |
-| Client | `VITE_API_URL` |
+| Component      | Variable names                                                                                      |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| Server         | `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`                 |
+| Client         | `VITE_API_URL`                                                                                      |
 | Docker Compose | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VITE_API_URL` |
 
 ## Known limitations
