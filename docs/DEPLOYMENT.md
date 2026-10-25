@@ -38,6 +38,8 @@ This guide deploys PostgreSQL to Neon, the API to Render, and the React single-p
 
    Production startup fails with a clear error if `DATABASE_URL`, `JWT_SECRET`, or `CLIENT_ORIGIN` is missing.
 
+   To enable the policy assistant, configure `LLM_ENABLED=true`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL`, `EMBEDDING_MODEL`, and `EMBEDDING_DIMENSIONS=768` using your Google AI Studio key and selected Gemini models. `RAG_TOP_K` (default `4`) and `RAG_MIN_SIMILARITY` (default `0.5`) control retrieval; `ASSISTANT_USER_RATE_LIMIT` (default `10` per hour) and `ASSISTANT_DAILY_CALL_CAP` (default `100`) limit assistant calls. Keep `LLM_ENABLED=false` to show the assistant as unavailable without making provider calls. The daily cap and per-user hourly limit are stored in PostgreSQL and apply across API instances. Gemini free-tier quotas may impose additional limits.
+
 5. Create the service and wait for the first deploy. Check the Render logs for a successful migration and the `/health` check. A healthy response includes `"status":"ok"` and `"database":"connected"`.
 
 ## 3. Add fictional demo data manually
@@ -96,7 +98,11 @@ The vector knowledge base is not populated at server startup, build, or deploy. 
 - [ ] Vercel routes such as `/login` and `/claims` load directly and survive refresh.
 - [ ] Customer and admin demo logins work after manually seeding Neon.
 - [ ] Customer views are limited to the signed-in customer's records.
+- [ ] The assistant streams policy-grounded answers and shows only cited fictional-document sources.
 - [ ] Admin claims, status updates, comments, and dashboard charts load.
 - [ ] Document downloads work while their files remain on the Render instance.
 - [ ] No production credentials or database URLs are present in the repository.
 - [ ] Remember that Render free-tier services may sleep and local-disk uploads are not persistent.
+- [ ] Assistant answers are informational only, use fictional policy documents, and do not determine coverage or payment.
+
+The assistant uses Gemini streaming (`streamGenerateContent` with `alt=sse`). Its calls may be limited by provider free-tier quotas as well as the configured durable usage caps. It does not use prior chat messages to answer new questions.

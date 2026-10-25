@@ -25,6 +25,7 @@ All records and people in the demo are fictional. These credentials are public d
 - Claim status timeline and claim comments.
 - Admin dashboard charts, claim search and filters, status updates, and comments.
 - Authenticated document downloads with a clear response when a file is no longer on disk.
+- Customer policy assistant with streaming answers and citations from fictional policy documents.
 - Responsive React interface with loading, empty, and error states.
 
 ## Tech stack
@@ -117,6 +118,8 @@ All application endpoints are prefixed by `/api`. Protected routes require a bea
 | `GET`         | `/api/auth/me`                                     | Get the signed-in user                       |
 | `GET`         | `/api/policies`                                    | List the signed-in customer's policies       |
 | `GET`         | `/api/policies/:id`                                | Get a policy owned by the signed-in customer |
+| `POST`        | `/api/assistant/ask`                               | Ask an independent question about an owned policy |
+| `GET`, `DELETE` | `/api/assistant/history?policyId=...`             | Read or clear the signed-in customer's policy conversation |
 | `GET`, `POST` | `/api/claims`                                      | List claims or submit a claim                |
 | `GET`         | `/api/claims/:id`                                  | Get a claim owned by the signed-in customer  |
 | `POST`        | `/api/claims/:id/documents`                        | Upload a claim document                      |
@@ -136,6 +139,7 @@ The names below are configured through environment files for local work and host
 | Component      | Variable names                                                                                      |
 | -------------- | --------------------------------------------------------------------------------------------------- |
 | Server         | `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`                 |
+| Policy assistant | `LLM_ENABLED`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL`, `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, `RAG_TOP_K`, `RAG_MIN_SIMILARITY`, `ASSISTANT_USER_RATE_LIMIT`, `ASSISTANT_DAILY_CALL_CAP` |
 | Client         | `VITE_API_URL`                                                                                      |
 | Docker Compose | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VITE_API_URL` |
 
@@ -144,11 +148,11 @@ The names below are configured through environment files for local work and host
 - Free Render services may sleep while idle. The first request after sleep can take up to a minute.
 - Uploaded files are stored on the server's local disk and are not persistent on free hosting. A deployment or restart may remove files; their database records remain and downloading a missing file returns 404.
 - All demo data, policies, claims, people, and credentials are fictional.
+- Policy assistant calls are subject to Gemini free-tier quotas and configured per-user/hourly and global/daily caps. Answers are based only on fictional policy documents and are not coverage decisions.
 
 ## Future improvements
 
 - Move claim documents to durable object storage.
-- Add a policy-question assistant with answers grounded in policy documents.
 - Add automated deployment previews and production monitoring.
 - Add more end-to-end coverage for customer and administrator workflows.
 - Expand reporting, accessibility audits, and operational dashboards.

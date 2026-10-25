@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import { authRouter } from './routes/auth.routes.js'
 import { adminRouter } from './routes/admin.routes.js'
 import { customerRouter } from './routes/customer.routes.js'
+import { assistantRouter } from './routes/assistant.routes.js'
 import { errorHandler } from './middleware/error-handler.js'
 import { AppError } from './lib/app-error.js'
 import { prisma } from './lib/prisma.js'
@@ -48,6 +49,7 @@ app.use(express.json())
 app.use('/api/auth', authRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api', customerRouter)
+app.use('/api/assistant', assistantRouter)
 
 app.get('/health', async (_request, response) => {
   try {

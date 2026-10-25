@@ -47,6 +47,21 @@ export interface Policy {
   userId: string;
 }
 
+export interface AssistantSource {
+  documentTitle: string;
+  sectionTitle: string;
+  excerpt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  policyId: string;
+  role: "USER" | "ASSISTANT";
+  content: string;
+  sources: AssistantSource[] | null;
+  createdAt: string;
+}
+
 export interface Claim {
   id: string;
   claimNumber: string;

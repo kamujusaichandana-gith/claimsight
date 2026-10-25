@@ -16,6 +16,9 @@ import {
   PolicyDetailsPage,
 } from "./pages/CustomerPages";
 import { NewClaimPage } from "./pages/claims/new/NewClaimPage";
+const AssistantPage = lazy(() =>
+  import("./pages/AssistantPage").then(({ AssistantPage: page }) => ({ default: page })),
+);
 
 const AdminDashboardPage = lazy(() =>
   import("./pages/AdminPages").then(({ AdminDashboardPage: page }) => ({ default: page })),
@@ -71,6 +74,7 @@ function App() {
                 <Route element={<RoleRoute role="CUSTOMER" />}>
                   <Route path="dashboard" element={<DashboardPage />} />
                   <Route path="policies" element={<PoliciesPage />} />
+                  <Route path="assistant" element={<Suspense fallback={<RouteLoading title="Ask about my policy" label="Loading policy assistant" />}><AssistantPage /></Suspense>} />
                   <Route path="policies/:id" element={<PolicyDetailsPage />} />
                   <Route path="claims" element={<ClaimsPage />} />
                   <Route path="claims/new" element={<NewClaimPage />} />

@@ -31,6 +31,11 @@ enum ClaimStatus {
   PAID
 }
 
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
 model User {
   id           String         @id @default(cuid())
   name         String
@@ -42,6 +47,8 @@ model User {
   claims       Claim[]
   comments     ClaimComment[]
   statusChanges ClaimStatusHistory[]
+  chatMessages  ChatMessage[]
+  assistantUsage AssistantUserUsage[]
 
   @@index([role, createdAt])
 }
@@ -58,6 +65,7 @@ model Policy {
   userId        String
   user          User         @relation(fields: [userId], references: [id], onDelete: Restrict)
   claims        Claim[]
+  chatMessages  ChatMessage[]
 
   @@index([userId, status])
   @@index([status, endDate])
@@ -92,6 +100,34 @@ model Claim {
 model ClaimSummaryUsage {
   day   DateTime @id @db.Date
   count Int      @default(0)
+}
+
+model AssistantUserUsage {
+  userId String
+  hour   DateTime @db.Timestamp(3)
+  count  Int      @default(0)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, hour])
+}
+
+model AssistantDailyUsage {
+  day   DateTime @id @db.Date
+  count Int      @default(0)
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  policyId  String
+  role      ChatRole
+  content   String   @db.Text
+  sources   Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  policy    Policy   @relation(fields: [policyId], references: [id], onDelete: Restrict)
+
+  @@index([userId, policyId, createdAt])
 }
 
 model PolicyDocumentChunk {

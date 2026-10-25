@@ -6,6 +6,7 @@ import { Button } from "./ui";
 const customerLinks = [
   { to: "/dashboard", label: "Overview" },
   { to: "/policies", label: "My policies" },
+  { to: "/assistant", label: "Ask about my policy" },
   { to: "/claims", label: "Claims" },
 ];
 
@@ -19,6 +20,7 @@ function titleForPath(pathname: string): string {
   if (pathname === "/register") return "Create account";
   if (pathname === "/dashboard") return "Dashboard";
   if (pathname === "/policies") return "My policies";
+  if (pathname === "/assistant") return "Ask about my policy";
   if (/^\/policies\/[^/]+$/.test(pathname)) return "Policy details";
   if (pathname === "/claims") return "My claims";
   if (pathname === "/claims/new") return "File a claim";
