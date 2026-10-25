@@ -11,6 +11,22 @@ export type ClaimStatus =
   | "REJECTED"
   | "PAID";
 
+export type ClaimSummaryCategory = "AUTO" | "HOME" | "HEALTH" | "TRAVEL" | "OTHER";
+export type ClaimUrgency = "LOW" | "MEDIUM" | "HIGH";
+
+export interface ClaimSummary {
+  summary: string;
+  suggestedCategory: ClaimSummaryCategory;
+  urgency: ClaimUrgency;
+}
+
+export interface AdminClaimSummaryResponse {
+  enabled: boolean;
+  summary: ClaimSummary | null;
+  generatedAt: string | null;
+  model: string | null;
+}
+
 export interface User {
   id: string;
   name: string;

@@ -64,26 +64,34 @@ model Policy {
 }
 
 model Claim {
-  id           String         @id @default(cuid())
-  claimNumber  String         @unique
-  policyId     String
-  userId       String
-  incidentDate DateTime       @db.Date
-  incidentType String
-  description  String         @db.Text
-  amount       Decimal        @db.Decimal(12, 2)
-  status       ClaimStatus    @default(SUBMITTED)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  policy       Policy         @relation(fields: [policyId], references: [id], onDelete: Restrict)
-  user         User           @relation(fields: [userId], references: [id], onDelete: Restrict)
-  comments     ClaimComment[]
-  documents    ClaimDocument[]
-  statusHistory ClaimStatusHistory[]
+  id                 String         @id @default(cuid())
+  claimNumber        String         @unique
+  policyId           String
+  userId             String
+  incidentDate       DateTime       @db.Date
+  incidentType       String
+  description        String         @db.Text
+  amount             Decimal        @db.Decimal(12, 2)
+  status             ClaimStatus    @default(SUBMITTED)
+  summary            Json?
+  summaryGeneratedAt DateTime?
+  summaryModel       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  policy             Policy         @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  user               User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  comments           ClaimComment[]
+  documents          ClaimDocument[]
+  statusHistory      ClaimStatusHistory[]
 
   @@index([policyId, status])
   @@index([userId, status, createdAt])
   @@index([createdAt])
+}
+
+model ClaimSummaryUsage {
+  day   DateTime @id @db.Date
+  count Int      @default(0)
 }
 
 model ClaimComment {

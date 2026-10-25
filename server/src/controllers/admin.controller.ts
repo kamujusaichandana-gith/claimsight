@@ -1,6 +1,9 @@
 import type { RequestHandler } from 'express'
 import type { Prisma } from '@prisma/client'
 import { ClaimStatus } from '@prisma/client'
+import { z } from 'zod'
+import { claimSummarySchema, summarizeClaim } from '../services/claim-summary.service.js'
+import { createGeminiSummaryProvider } from '../services/gemini-summary-provider.js'
 import { AppError } from '../lib/app-error.js'
 import { prisma } from '../lib/prisma.js'
 import {
@@ -8,6 +11,37 @@ import {
   listAdminClaimsQuerySchema,
   updateClaimStatusSchema,
 } from '../validators/admin.validator.js'
+
+const summaryRequestSchema = z.object({
+  regenerate: z.boolean().optional().default(false),
+}).strict().default({})
+
+function summarizerEnabled(): boolean {
+  return process.env.LLM_ENABLED?.trim().toLowerCase() === 'true'
+}
+
+function dailyCallCap(): number {
+  const rawCap = process.env.LLM_DAILY_CALL_CAP
+  const cap = rawCap === undefined ? 100 : Number(rawCap)
+  if (!Number.isSafeInteger(cap) || cap < 1) {
+    throw new AppError(500, 'AI summary daily call cap is not configured correctly')
+  }
+  return cap
+}
+
+async function reserveDailySummaryCall(): Promise<void> {
+  const reservations = await prisma.$queryRaw<Array<{ count: number }>>`
+    INSERT INTO "ClaimSummaryUsage" ("day", "count")
+    VALUES (CURRENT_DATE, 1)
+    ON CONFLICT ("day") DO UPDATE
+    SET "count" = "ClaimSummaryUsage"."count" + 1
+    WHERE "ClaimSummaryUsage"."count" < ${dailyCallCap()}
+    RETURNING "count"
+  `
+  if (reservations.length === 0) {
+    throw new AppError(429, 'The daily AI summary limit has been reached. Please try again tomorrow.')
+  }
+}
 
 function authenticatedUserId(request: Parameters<RequestHandler>[0]): string {
   if (!request.user) {
@@ -103,6 +137,98 @@ export const getClaim: RequestHandler = async (request, response) => {
   }
 
   response.status(200).json({ claim })
+}
+
+export const getClaimSummary: RequestHandler = async (request, response) => {
+  const claim = await prisma.claim.findUnique({
+    where: { id: requiredPathId(request) },
+    select: {
+      summary: true,
+      summaryGeneratedAt: true,
+      summaryModel: true,
+    },
+  })
+  if (!claim) {
+    throw new AppError(404, 'Claim not found')
+  }
+
+  const summary = claim.summary === null
+    ? null
+    : claimSummarySchema.safeParse(claim.summary)
+  if (summary && !summary.success) {
+    throw new AppError(500, 'The stored AI summary is invalid')
+  }
+
+  response.status(200).json({
+    enabled: summarizerEnabled(),
+    summary: summary?.success ? summary.data : null,
+    generatedAt: claim.summaryGeneratedAt,
+    model: claim.summaryModel,
+  })
+}
+
+export const createClaimSummary: RequestHandler = async (request, response) => {
+  const input = summaryRequestSchema.parse(request.body)
+  if (!summarizerEnabled()) {
+    throw new AppError(503, 'AI summaries are disabled')
+  }
+
+  const claim = await prisma.claim.findUnique({
+    where: { id: requiredPathId(request) },
+    include: {
+      policy: { select: { policyNumber: true, type: true } },
+      comments: {
+        select: { message: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      },
+    },
+  })
+  if (!claim) {
+    throw new AppError(404, 'Claim not found')
+  }
+
+  if (claim.summary !== null && !input.regenerate) {
+    const cachedSummary = claimSummarySchema.safeParse(claim.summary)
+    if (!cachedSummary.success) {
+      throw new AppError(500, 'The stored AI summary is invalid')
+    }
+    response.status(200).json(cachedSummary.data)
+    return
+  }
+
+  let provider: ReturnType<typeof createGeminiSummaryProvider>
+  try {
+    provider = createGeminiSummaryProvider()
+  } catch {
+    throw new AppError(503, 'AI summary provider is not configured')
+  }
+
+  const summary = await summarizeClaim(
+    {
+      claimNumber: claim.claimNumber,
+      incidentDate: claim.incidentDate.toISOString(),
+      incidentType: claim.incidentType,
+      description: claim.description,
+      amount: claim.amount.toString(),
+      policy: claim.policy,
+      comments: claim.comments.map((comment) => ({
+        message: comment.message,
+        createdAt: comment.createdAt.toISOString(),
+      })),
+    },
+    provider,
+    reserveDailySummaryCall,
+  )
+
+  await prisma.claim.update({
+    where: { id: claim.id },
+    data: {
+      summary,
+      summaryGeneratedAt: new Date(),
+      summaryModel: process.env.LLM_MODEL?.trim() ?? null,
+    },
+  })
+  response.status(200).json(summary)
 }
 
 export const updateClaimStatus: RequestHandler = async (

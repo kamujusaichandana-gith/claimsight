@@ -15,6 +15,12 @@ if (process.env.NODE_ENV === 'production') {
     'JWT_SECRET',
     'CLIENT_ORIGIN',
   ].filter((name) => !process.env[name]?.trim())
+  if (
+    process.env.LLM_ENABLED?.trim().toLowerCase() === 'true' &&
+    !process.env.LLM_API_KEY?.trim()
+  ) {
+    missingEnvironmentVariables.push('LLM_API_KEY (required when LLM_ENABLED=true)')
+  }
 
   if (missingEnvironmentVariables.length > 0) {
     throw new Error(

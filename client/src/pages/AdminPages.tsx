@@ -15,8 +15,8 @@ import { z } from "zod";
 import { apiClient } from "../api/client";
 import { ClaimDocumentDownload } from "../components/ClaimDocumentDownload";
 import { Badge, Button, Card, EmptyState, ErrorMessage, Spinner } from "../components/ui";
-import { useAdminClaim, useAdminClaims, useAdminStats } from "../hooks/useAdminData";
-import type { AdminClaimDetails, ClaimStatus, PolicyType } from "../types";
+import { useAdminClaim, useAdminClaimSummary, useAdminClaims, useAdminStats } from "../hooks/useAdminData";
+import type { AdminClaimDetails, ClaimStatus, ClaimSummary, PolicyType } from "../types";
 
 const statuses: ClaimStatus[] = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "PAID"];
 const statusLabels: Record<ClaimStatus, string> = {
@@ -48,6 +48,10 @@ const nextStatuses: Partial<Record<ClaimStatus, ClaimStatus[]>> = {
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
+});
+const summaryDateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
 });
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
@@ -440,6 +444,83 @@ function ClaimTimeline({ claim }: { claim: AdminClaimDetails }) {
   );
 }
 
+function AdminClaimSummaryPanel({ claimId }: { claimId: string }) {
+  const queryClient = useQueryClient();
+  const summaryQuery = useAdminClaimSummary(claimId);
+  const summaryMutation = useMutation({
+    mutationFn: async (regenerate: boolean) => {
+      const response = await apiClient.post<ClaimSummary>(
+        `/api/admin/claims/${encodeURIComponent(claimId)}/summary`,
+        { regenerate },
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "claim-summary", claimId] });
+    },
+  });
+
+  return (
+    <Card className="h-fit">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-slate-950">AI summary</h2>
+        {summaryQuery.data?.enabled && (
+          <Button
+            variant={summaryQuery.data.summary ? "outline" : "primary"}
+            disabled={summaryMutation.isPending}
+            onClick={() => summaryMutation.mutate(Boolean(summaryQuery.data?.summary))}
+          >
+            {summaryMutation.isPending
+              ? <><Spinner label={summaryQuery.data.summary ? "Regenerating summary" : "Generating summary"} />Generating…</>
+              : summaryQuery.data.summary ? "Regenerate" : "Generate"}
+          </Button>
+        )}
+      </div>
+
+      {summaryQuery.isPending && <div className="mt-4"><Spinner label="Loading AI summary" /></div>}
+      {summaryQuery.isError && (
+        <div className="mt-4">
+          <RetryError
+            message={readableApiError(summaryQuery.error, "We couldn't load the AI summary. The rest of the claim review is still available.")}
+            onRetry={() => void summaryQuery.refetch()}
+          />
+        </div>
+      )}
+      {summaryQuery.data && !summaryQuery.data.enabled && (
+        <p className="mt-4 text-sm leading-6 text-slate-600">AI summaries are currently disabled.</p>
+      )}
+      {summaryMutation.isError && (
+        <div className="mt-4">
+          <ErrorMessage message={readableApiError(summaryMutation.error, "We couldn't generate an AI summary. Please try again.")} />
+        </div>
+      )}
+      {summaryQuery.data?.summary && (
+        <div className="mt-4 space-y-4">
+          <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{summaryQuery.data.summary.summary}</p>
+          <dl className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Suggested category</dt>
+              <dd className="mt-1 font-medium text-slate-900">{summaryQuery.data.summary.suggestedCategory}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Urgency</dt>
+              <dd className="mt-1 font-medium text-slate-900">{summaryQuery.data.summary.urgency}</dd>
+            </div>
+          </dl>
+          {summaryQuery.data.generatedAt && (
+            <time className="block text-xs text-slate-500" dateTime={summaryQuery.data.generatedAt}>
+              Generated {summaryDateFormatter.format(new Date(summaryQuery.data.generatedAt))}
+            </time>
+          )}
+        </div>
+      )}
+      <p className="mt-4 border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">
+        This summary is AI-generated and must be reviewed by a person.
+      </p>
+    </Card>
+  );
+}
+
 const commentSchema = z.object({
   message: z.string().trim().min(1, "Enter a comment.").max(5000, "Comments must be 5,000 characters or fewer."),
 });
@@ -725,6 +806,7 @@ function ClaimReviewPage() {
         </div>
 
         <aside className="space-y-5">
+          <AdminClaimSummaryPanel claimId={claim.id} />
           <Card className="h-fit">
             <h2 className="mb-5 text-lg font-semibold text-slate-950">Status timeline</h2>
             <ClaimTimeline claim={claim} />

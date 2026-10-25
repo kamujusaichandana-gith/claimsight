@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { apiClient } from "../api/client";
 import type {
+  AdminClaimSummaryResponse,
   AdminClaimDetails,
   AdminClaimListItem,
   ClaimStatistics,
@@ -51,6 +52,19 @@ export function useAdminClaim(id: string) {
         `/api/admin/claims/${encodeURIComponent(id)}`,
       );
       return response.data.claim;
+    },
+    enabled: Boolean(id),
+  });
+}
+
+export function useAdminClaimSummary(id: string) {
+  return useQuery({
+    queryKey: ["admin", "claim-summary", id],
+    queryFn: async () => {
+      const response = await apiClient.get<AdminClaimSummaryResponse>(
+        `/api/admin/claims/${encodeURIComponent(id)}/summary`,
+      );
+      return response.data;
     },
     enabled: Boolean(id),
   });
