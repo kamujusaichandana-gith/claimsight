@@ -9,6 +9,7 @@ This guide deploys PostgreSQL to Neon, the API to Render, and the React single-p
 3. In Neon, open **Connect** and choose the database and branch for this environment.
 4. Copy the **Direct connection** string and keep it private. Use the direct (non-pooled) connection for this deployment because `prisma migrate deploy` runs at server startup and relies on database session behavior.
 5. Keep this connection string available for the Render `DATABASE_URL` setting and for the manual seed step below.
+6. The policy knowledge base migration enables pgvector with `CREATE EXTENSION IF NOT EXISTS vector;`. Confirm that the Neon PostgreSQL version provides pgvector and that the database role used by migrations is allowed to create the extension. The migration will fail if the role does not have that permission; resolve the permission with the database owner before deploying it.
 
 ## 2. Deploy the API to Render
 
@@ -56,7 +57,23 @@ Run the seed from your laptop after the Render service has applied migrations. T
 
 The seeded login accounts are listed in the root [README](../README.md). Never seed production databases that contain real customer data.
 
-## 4. Deploy the client to Vercel
+## 4. Ingest fictional policy documents manually
+
+The vector knowledge base is not populated at server startup, build, or deploy. Run ingestion from your laptop only after the Neon migration has completed:
+
+1. In `server/.env`, set `DATABASE_URL` to the target Neon direct connection string, `LLM_API_KEY` to your Google AI Studio key, `LLM_BASE_URL` to `https://generativelanguage.googleapis.com/v1beta`, and `EMBEDDING_MODEL` to the embedding model you selected. `EMBEDDING_DIMENSIONS` defaults to `768`.
+2. From the repository root, use the same manual workflow as the seed:
+
+   ```sh
+   cd server
+   npm ci
+   npm run rag:ingest
+   ```
+
+   Ingestion reports created, updated, skipped, and deleted chunks. Re-running it skips unchanged content. Do not add this command to startup, build, or deploy automation.
+3. To test retrieval manually, run `npm run rag:query -- AUTO "What is the collision deductible?"` and replace `AUTO` with `HOME`, `HEALTH`, or `TRAVEL` as needed. `RAG_TOP_K` defaults to `4` and `RAG_MIN_SIMILARITY` defaults to `0.5`.
+
+## 5. Deploy the client to Vercel
 
 1. Import this Git repository as a Vercel project.
 2. Set **Root Directory** to `client`.
@@ -71,7 +88,7 @@ The seeded login accounts are listed in the root [README](../README.md). Never s
 6. If the Vercel URL differs from the origin configured on Render, update Render's `CLIENT_ORIGIN` to the deployed origin and redeploy/restart the Render service.
 7. If you change `VITE_API_URL`, trigger a new Vercel deployment; Vite embeds this value during the build.
 
-## 5. Post-deploy checklist
+## 6. Post-deploy checklist
 
 - [ ] Render deployment finishes and its health check passes at `/health`.
 - [ ] `/health` reports both the API and database as available.

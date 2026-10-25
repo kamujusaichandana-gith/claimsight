@@ -94,6 +94,21 @@ model ClaimSummaryUsage {
   count Int      @default(0)
 }
 
+model PolicyDocumentChunk {
+  id            String     @id
+  policyType    PolicyType
+  documentTitle String
+  sectionTitle  String
+  content       String     @db.Text
+  contentHash   String
+  embedding     Unsupported("vector(768)")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([policyType, sectionTitle, contentHash])
+  @@index([policyType])
+}
+
 model ClaimComment {
   id        String   @id @default(cuid())
   claimId   String

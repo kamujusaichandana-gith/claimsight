@@ -13,7 +13,9 @@
     "test": "node -e \"console.log('No tests configured yet.')\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "rag:ingest": "tsx scripts/rag-ingest.ts",
+    "rag:query": "tsx scripts/rag-query.ts"
   },
   "keywords": [],
   "author": "",
