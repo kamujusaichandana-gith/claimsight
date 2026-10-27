@@ -48,9 +48,11 @@ export interface Policy {
 }
 
 export interface AssistantSource {
+  citationNumber?: number;
   documentTitle: string;
   sectionTitle: string;
-  excerpt: string;
+  content?: string;
+  excerpt?: string;
 }
 
 export interface ChatMessage {

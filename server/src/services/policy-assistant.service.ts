@@ -9,9 +9,10 @@ export const insufficientInformationAnswer =
   "I don't have enough information in this policy's documents to answer that."
 
 export interface AssistantSource {
+  citationNumber: number
   documentTitle: string
   sectionTitle: string
-  excerpt: string
+  content: string
 }
 
 export interface PolicyAssistantResult {
@@ -55,11 +56,11 @@ export function parseCitedSources(
 
   return [...cited].map((number) => {
     const chunk = chunks[number - 1]
-    const excerpt = chunk.content.trim()
     return {
+      citationNumber: number,
       documentTitle: chunk.documentTitle,
       sectionTitle: chunk.sectionTitle,
-      excerpt: excerpt.length > 240 ? `${excerpt.slice(0, 237).trimEnd()}...` : excerpt,
+      content: chunk.content,
     }
   })
 }

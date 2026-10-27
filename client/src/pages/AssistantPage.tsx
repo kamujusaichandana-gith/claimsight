@@ -62,6 +62,120 @@ function AssistantInfoNote() {
   );
 }
 
+function sourceText(source: AssistantSource): string {
+  if (typeof source.content === "string") return source.content;
+  return typeof source.excerpt === "string" ? source.excerpt : "";
+}
+
+const stopWords = new Set([
+  "a", "about", "above", "after", "again", "against", "all", "am", "an", "and",
+  "any", "are", "as", "at", "be", "because", "been", "before", "being", "below",
+  "between", "both", "but", "by", "can", "could", "did", "do", "does", "doing",
+  "down", "during", "each", "few", "for", "from", "further", "had", "has", "have",
+  "having", "he", "her", "here", "hers", "herself", "him", "himself", "his", "how",
+  "i", "if", "in", "into", "is", "it", "its", "itself", "just", "may", "might",
+  "more", "most", "must", "my", "myself", "no", "nor", "not", "of", "off", "on",
+  "once", "only", "or", "other", "our", "ours", "ourselves", "out", "over", "own",
+  "same", "she", "should", "so", "some", "such", "than", "that", "the", "their",
+  "theirs", "them", "themselves", "then", "there", "these", "they", "this", "those",
+  "through", "to", "too", "under", "until", "up", "very", "was", "we", "were",
+  "what", "when", "where", "which", "while", "who", "whom", "why", "will", "with",
+  "would", "you", "your", "yours", "yourself", "yourselves",
+]);
+
+interface SentenceMatch {
+  text: string;
+  start: number;
+}
+
+function sentenceParts(text: string): SentenceMatch[] {
+  return [...text.matchAll(/[^.!?]+(?:[.!?]+["')\]]*|$)/g)]
+    .filter((match) => match[0].trim())
+    .map((match) => ({ text: match[0], start: match.index ?? 0 }));
+}
+
+function words(text: string): Set<string> {
+  return new Set(
+    text.toLocaleLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.filter((word) => word.length > 2 && !stopWords.has(word)) ?? [],
+  );
+}
+
+function bestMatchingSentenceIndex(sentences: string[], answer: string): number {
+  const answerWords = words(answer);
+  if (answerWords.size === 0) return -1;
+
+  let bestIndex = -1;
+  let bestOverlap = 0;
+  for (const [index, sentence] of sentences.entries()) {
+    const overlap = [...words(sentence)].filter((word) => answerWords.has(word)).length;
+    if (overlap > bestOverlap) {
+      bestIndex = index;
+      bestOverlap = overlap;
+    }
+  }
+  return bestIndex;
+}
+
+function SourceCard({ source, answer }: { source: AssistantSource; answer: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const content = sourceText(source);
+  const isExcerptOnly = typeof source.content !== "string" && typeof source.excerpt === "string";
+  const preview = content.replace(/\s+/g, " ").trim();
+  const previewText = preview.length > 140
+    ? `${preview.slice(0, 137).trimEnd()}...`
+    : preview;
+  const sentences = sentenceParts(content);
+  const matchingSentenceIndex = bestMatchingSentenceIndex(
+    sentences.map((sentence) => sentence.text),
+    answer,
+  );
+  const lastSentence = sentences[sentences.length - 1];
+  const tailStart = lastSentence ? lastSentence.start + lastSentence.text.length : 0;
+
+  return (
+    <details
+      className="min-w-0 max-w-full rounded-xl border border-slate-200 bg-white p-3 text-slate-800 [overflow-wrap:anywhere]"
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+    >
+      <summary className="min-w-0 max-w-full cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 [overflow-wrap:anywhere]">
+        <span className="font-semibold [overflow-wrap:anywhere]">
+          {source.citationNumber ? `[${source.citationNumber}] ` : ""}
+          {source.documentTitle}
+        </span>
+        <span className="block min-w-0 max-w-full pl-5 text-xs text-slate-600 [overflow-wrap:anywhere]">{source.sectionTitle}</span>
+        {!expanded && previewText && (
+          <span className="source-preview mt-2 block min-w-0 max-w-full overflow-hidden pl-5 text-xs leading-5 text-slate-600 line-clamp-2 [overflow-wrap:anywhere]">
+            {previewText}
+          </span>
+        )}
+      </summary>
+      {expanded && (
+        <div className="mt-3 max-h-80 min-w-0 max-w-full overflow-x-hidden overflow-y-auto rounded-lg bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-800 [overflow-wrap:anywhere]">
+          {isExcerptOnly && (
+            <p className="mb-2 text-xs font-medium text-slate-500">Older message: excerpt only</p>
+          )}
+          <p className="min-w-0 max-w-full whitespace-pre-wrap [overflow-wrap:anywhere]">
+            {sentences.map((sentence, index) => (
+              <span key={`${index}-${sentence.start}`}>
+                {content.slice(
+                  index === 0 ? 0 : sentences[index - 1].start + sentences[index - 1].text.length,
+                  sentence.start,
+                )}
+                <span className={`[overflow-wrap:anywhere] ${index === matchingSentenceIndex ? "rounded-sm bg-amber-100" : ""}`}>
+                  {sentence.text}
+                </span>
+              </span>
+            ))}
+            {content.slice(tailStart)}
+          </p>
+        </div>
+      )}
+    </details>
+  );
+}
+
 function friendlyAssistantError(error: unknown): string {
   if (error instanceof AssistantRequestError) {
     if (error.status === 429) return error.message || "The assistant is busy. Please try again later.";
@@ -317,7 +431,7 @@ export function AssistantPage() {
         <Card><EmptyState title="No active policies" description="An active policy is needed before you can ask a policy question." headingLevel={2} /></Card>
       ) : (
         <>
-          <Card>
+          <Card className="min-w-0 max-w-full">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0 flex-1">
                 <Select
@@ -345,7 +459,7 @@ export function AssistantPage() {
               ) : (
                 <div
                   ref={conversationRef}
-                  className="max-h-[min(60vh,36rem)] space-y-5 overflow-y-auto pr-1"
+                  className="max-h-[min(60vh,36rem)] min-w-0 max-w-full space-y-5 overflow-x-hidden overflow-y-auto pr-1"
                   aria-live="polite"
                   aria-relevant="additions text"
                   aria-label="Conversation"
@@ -357,26 +471,24 @@ export function AssistantPage() {
                       key={message.id}
                       ref={message.id.startsWith("pending-assistant-") ? responseFocusRef : undefined}
                       tabIndex={message.id.startsWith("pending-assistant-") ? -1 : undefined}
-                      className={`max-w-[92%] rounded-2xl p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 ${message.role === "USER" ? "ml-auto bg-teal-800 text-white" : "mr-auto border border-slate-200 bg-slate-50 text-slate-900"}`}
+                      className={`min-w-0 w-full max-w-[92%] overflow-x-hidden rounded-2xl p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 [overflow-wrap:anywhere] ${message.role === "USER" ? "ml-auto bg-teal-800 text-white" : "mr-auto border border-slate-200 bg-slate-50 text-slate-900"}`}
                     >
-                      <p className={`mb-2 text-xs font-semibold uppercase tracking-wide ${message.role === "USER" ? "text-teal-100" : "text-teal-900"}`}>
+                      <p className={`mb-2 min-w-0 max-w-full text-xs font-semibold uppercase tracking-wide [overflow-wrap:anywhere] ${message.role === "USER" ? "text-teal-100" : "text-teal-900"}`}>
                         {message.role === "USER" ? "You" : "Policy assistant"}
                       </p>
-                      <p className="whitespace-pre-wrap text-sm leading-6">
+                      <p className="min-w-0 max-w-full whitespace-pre-wrap text-sm leading-6 [overflow-wrap:anywhere]">
                         {message.content || (isSending ? "Thinking…" : "")}
                       </p>
                       {message.role === "ASSISTANT" && message.sources && message.sources.length > 0 && (
-                        <section className="mt-4 border-t border-slate-200 pt-3" aria-label="Sources">
+                        <section className="mt-4 min-w-0 max-w-full border-t border-slate-200 pt-3" aria-label="Sources">
                           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">Sources</h3>
-                          <div className="grid gap-2">
+                          <div className="grid min-w-0 max-w-full gap-2">
                             {message.sources.map((source, index) => (
-                              <details key={`${source.documentTitle}-${source.sectionTitle}-${index}`} className="rounded-xl border border-slate-200 bg-white p-3 text-slate-800">
-                                <summary className="cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
-                                  <span className="font-semibold">{source.documentTitle}</span>
-                                  <span className="block pl-5 text-xs text-slate-600">{source.sectionTitle}</span>
-                                </summary>
-                                <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-700">{source.excerpt}</p>
-                              </details>
+                              <SourceCard
+                                key={`${source.documentTitle}-${source.sectionTitle}-${index}`}
+                                source={source}
+                                answer={message.content}
+                              />
                             ))}
                           </div>
                         </section>

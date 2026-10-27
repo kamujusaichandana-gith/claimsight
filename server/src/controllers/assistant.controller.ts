@@ -190,9 +190,10 @@ export const ask: RequestHandler = async (request, response) => {
     if (clientDisconnected) return
 
     const sources: Prisma.InputJsonArray = result.sources.map((source) => ({
+      citationNumber: source.citationNumber,
       documentTitle: source.documentTitle,
       sectionTitle: source.sectionTitle,
-      excerpt: source.excerpt,
+      content: source.content,
     }))
     const answerCreatedAt = new Date()
     await prisma.$transaction([
