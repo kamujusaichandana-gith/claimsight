@@ -3,7 +3,8 @@ import type { Prisma } from '@prisma/client'
 import { ClaimStatus } from '@prisma/client'
 import { z } from 'zod'
 import { claimSummarySchema, summarizeClaim } from '../services/claim-summary.service.js'
-import { createGeminiSummaryProvider } from '../services/gemini-summary-provider.js'
+import type { ClaimSummaryProvider } from '../services/claim-summary.service.js'
+import { getAiProviderFactories } from '../lib/ai-provider-factories.js'
 import { AppError } from '../lib/app-error.js'
 import { prisma } from '../lib/prisma.js'
 import {
@@ -196,9 +197,9 @@ export const createClaimSummary: RequestHandler = async (request, response) => {
     return
   }
 
-  let provider: ReturnType<typeof createGeminiSummaryProvider>
+  let provider: ClaimSummaryProvider
   try {
-    provider = createGeminiSummaryProvider()
+    provider = getAiProviderFactories().summary()
   } catch {
     throw new AppError(503, 'AI summary provider is not configured')
   }

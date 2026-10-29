@@ -3,9 +3,12 @@ import { z } from 'zod'
 
 export const createClaimSchema = z.object({
   policyId: z.string().trim().min(1),
-  incidentDate: z.coerce.date(),
+  incidentDate: z.coerce.date().refine(
+    (incidentDate) => incidentDate <= new Date(),
+    'Incident date cannot be in the future',
+  ),
   incidentType: z.string().trim().min(1).max(100),
-  description: z.string().trim().min(1).max(5000),
+  description: z.string().trim().min(20, 'Description must be at least 20 characters').max(5000),
   amount: z.number().positive().finite(),
 })
 

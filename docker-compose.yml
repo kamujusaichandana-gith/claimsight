@@ -16,6 +16,20 @@ services:
       timeout: 5s
       retries: 5
 
+  test-postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: claimsight_test
+      POSTGRES_USER: claimsight_test
+      POSTGRES_PASSWORD: claimsight_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claimsight_test -d claimsight_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   server:
     build:
       context: ./server

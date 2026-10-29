@@ -130,6 +130,24 @@ Stop the services with `docker compose down`. Use `docker compose down --volumes
 
 The client runs at `http://localhost:5173`; the API health endpoint is `http://localhost:3000/health`. The local server environment must allow the client origin with `CLIENT_ORIGIN`.
 
+### Server API tests
+
+The API tests use a separate PostgreSQL database and refuse to run unless
+`TEST_DATABASE_URL` is set to a database whose name contains `test` and is
+different from `DATABASE_URL`. The root and server environment examples use
+the dedicated `claimsight_test` database on port 5433. Start it with:
+
+```sh
+docker compose up -d test-postgres
+cd server
+npm ci
+TEST_DATABASE_URL=postgresql://claimsight_test:claimsight_test@localhost:5433/claimsight_test?schema=public npm test
+```
+
+Tests apply Prisma migrations to that database and clear its application tables
+between tests. They do not call Gemini or any other external service.
+`npm run test:watch` runs the same suite in watch mode.
+
 ## API overview
 
 All application endpoints are prefixed by `/api`. Protected routes require a bearer token from login or registration.

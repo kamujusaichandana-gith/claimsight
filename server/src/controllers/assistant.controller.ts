@@ -3,8 +3,9 @@ import { Prisma, UserRole } from '@prisma/client'
 import { z } from 'zod'
 import { AppError } from '../lib/app-error.js'
 import { prisma } from '../lib/prisma.js'
-import { createGeminiEmbeddingProvider } from '../services/gemini-embedding-provider.js'
-import { createGeminiAssistantProvider } from '../services/gemini-assistant-provider.js'
+import { getAiProviderFactories } from '../lib/ai-provider-factories.js'
+import type { AssistantTextProvider } from '../services/gemini-assistant-provider.js'
+import type { EmbeddingProvider } from '../services/gemini-embedding-provider.js'
 import { retrievePolicyChunks, type RetrievedPolicyChunk } from '../services/policy-knowledge-base.js'
 import { generatePolicyAnswer } from '../services/policy-assistant.service.js'
 
@@ -125,9 +126,9 @@ export const ask: RequestHandler = async (request, response) => {
 
   await reserveAssistantCall(userId)
 
-  let embeddingProvider: ReturnType<typeof createGeminiEmbeddingProvider>
+  let embeddingProvider: EmbeddingProvider
   try {
-    embeddingProvider = createGeminiEmbeddingProvider()
+    embeddingProvider = getAiProviderFactories().embedding()
   } catch {
     throw new AppError(503, 'The policy assistant is unavailable right now.')
   }
@@ -151,10 +152,10 @@ export const ask: RequestHandler = async (request, response) => {
     throw new AppError(502, 'Policy documents could not be searched right now. Please try again.')
   }
 
-  let assistantProvider: ReturnType<typeof createGeminiAssistantProvider> | undefined
+  let assistantProvider: AssistantTextProvider | undefined
   if (chunks.length > 0) {
     try {
-      assistantProvider = createGeminiAssistantProvider()
+      assistantProvider = getAiProviderFactories().assistant()
     } catch {
       throw new AppError(503, 'The policy assistant is unavailable right now.')
     }

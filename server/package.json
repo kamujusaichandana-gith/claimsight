@@ -10,7 +10,8 @@
     "start": "prisma migrate deploy && node dist/index.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node -e \"console.log('No tests configured yet.')\"",
+    "test": "tsx test/check-database.ts && vitest run",
+    "test:watch": "tsx test/check-database.ts && vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
@@ -46,12 +47,15 @@
     "@types/multer": "^2.3.0",
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
     "prettier": "^3.9.9",
+    "supertest": "^7.3.1",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.1"
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "@prisma/config": {
