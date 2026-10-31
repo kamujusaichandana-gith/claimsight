@@ -24,15 +24,30 @@ jobs:
         working-directory: client
       - run: npm run build
         working-directory: client
-      # Tests are intentionally skipped until test suites are added.
-      - if: false
-        run: npm test
+      - run: npm test
         working-directory: client
 
   server:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: claimsight_test
+          POSTGRES_USER: claimsight_test
+          POSTGRES_PASSWORD: claimsight_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U claimsight_test -d claimsight_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: postgresql://claimsight:claimsight@localhost:5432/claimsight?schema=public
+      DATABASE_URL: postgresql://claimsight_test:claimsight_test@localhost:5432/claimsight_app?schema=public
+      JWT_SECRET: ci-only-dummy-jwt-secret
+      CLIENT_ORIGIN: http://localhost:5173
+      LLM_ENABLED: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -52,7 +67,7 @@ jobs:
         working-directory: server
       - run: npm run build
         working-directory: server
-      # Tests are intentionally skipped until test suites are added.
-      - if: false
-        run: npm test
+      - run: npm test
         working-directory: server
+        env:
+          TEST_DATABASE_URL: postgresql://claimsight_test:claimsight_test@localhost:5432/claimsight_test?schema=public

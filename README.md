@@ -130,6 +130,18 @@ Stop the services with `docker compose down`. Use `docker compose down --volumes
 
 The client runs at `http://localhost:5173`; the API health endpoint is `http://localhost:3000/health`. The local server environment must allow the client origin with `CLIENT_ORIGIN`.
 
+## Testing
+
+### Client tests
+
+Run the client suite in non-watch mode:
+
+```sh
+cd client
+npm ci
+npm test
+```
+
 ### Server API tests
 
 The API tests use a separate PostgreSQL database and refuse to run unless
@@ -200,7 +212,7 @@ The names below are configured through environment files for local work and host
 
 - Move claim documents to durable object storage.
 - Add automated deployment previews and production monitoring.
-- Add automated unit, integration, and end-to-end tests, plus an evaluation set for RAG retrieval and refusal behavior.
+- Add an evaluation set for RAG retrieval and refusal behavior.
 - Expand reporting, accessibility audits, and operational dashboards.
 
 ## AI features
