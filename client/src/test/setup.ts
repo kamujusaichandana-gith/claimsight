@@ -18,11 +18,22 @@ import { apiClient } from "../api/client";
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.mocked(apiClient.get).mockRejectedValue(new Error("Unexpected API call in test"));
-  vi.mocked(apiClient.post).mockRejectedValue(new Error("Unexpected API call in test"));
-  vi.mocked(apiClient.patch).mockRejectedValue(new Error("Unexpected API call in test"));
-  vi.mocked(apiClient.delete).mockRejectedValue(new Error("Unexpected API call in test"));
-  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Unexpected fetch in test")));
+  vi.mocked(apiClient.get).mockRejectedValue(
+    new Error("Unexpected API call in test"),
+  );
+  vi.mocked(apiClient.post).mockRejectedValue(
+    new Error("Unexpected API call in test"),
+  );
+  vi.mocked(apiClient.patch).mockRejectedValue(
+    new Error("Unexpected API call in test"),
+  );
+  vi.mocked(apiClient.delete).mockRejectedValue(
+    new Error("Unexpected API call in test"),
+  );
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockRejectedValue(new Error("Unexpected fetch in test")),
+  );
   localStorage.clear();
 });
 
@@ -31,3 +42,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
   localStorage.clear();
 });
+
+// jsdom does not implement element scrolling, so give it harmless stand-ins.
+for (const name of ["scrollTo", "scrollIntoView"] as const) {
+  Object.defineProperty(Element.prototype, name, {
+    value: () => {},
+    writable: true,
+    configurable: true,
+  });
+}
