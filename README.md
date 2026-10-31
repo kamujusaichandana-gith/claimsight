@@ -51,7 +51,7 @@ flowchart LR
 
 ## Run locally
 
-Requirements: Node.js 20.19+ and npm. For Docker, also install Docker with Compose.
+Requirements: Node.js 24 and npm. For Docker, also install Docker with Compose.
 
 ### With Docker
 
@@ -164,40 +164,40 @@ between tests. They do not call Gemini or any other external service.
 
 All application endpoints are prefixed by `/api`. Protected routes require a bearer token from login or registration.
 
-| Method          | Endpoint                                           | Description                                                |
-| --------------- | -------------------------------------------------- | ---------------------------------------------------------- |
-| `POST`          | `/api/auth/register`                               | Register a customer account                                |
-| `POST`          | `/api/auth/login`                                  | Sign in                                                    |
-| `GET`           | `/api/auth/me`                                     | Get the signed-in user                                     |
-| `GET`           | `/api/policies`                                    | List the signed-in customer's policies                     |
-| `GET`           | `/api/policies/:id`                                | Get a policy owned by the signed-in customer               |
-| `POST`          | `/api/assistant/ask`                               | Ask a question about an owned policy; streams the answer and citations using SSE |
-| `GET`           | `/api/assistant/history?policyId=...`              | Read the signed-in customer's policy conversation          |
-| `DELETE`        | `/api/assistant/history?policyId=...`              | Clear the signed-in customer's policy conversation         |
-| `GET`, `POST`   | `/api/claims`                                      | List claims or submit a claim                              |
-| `GET`           | `/api/claims/:id`                                  | Get a claim owned by the signed-in customer                |
-| `POST`          | `/api/claims/:id/documents`                        | Upload a claim document                                    |
-| `GET`           | `/api/claims/:claimId/documents/:documentId`       | Download a claim document                                  |
-| `GET`           | `/api/admin/claims`                                | List and filter claims (admin)                             |
-| `GET`           | `/api/admin/claims/:id`                            | Get claim details (admin)                                  |
-| `GET`           | `/api/admin/claims/:id/summary`                    | Get an admin claim's AI summary, if generated (admin)      |
-| `POST`          | `/api/admin/claims/:id/summary`                    | Generate or regenerate an AI claim summary (admin)         |
-| `GET`           | `/api/admin/claims/:claimId/documents/:documentId` | Download a claim document (admin)                          |
-| `PATCH`         | `/api/admin/claims/:id/status`                     | Update a claim status (admin)                              |
-| `POST`          | `/api/admin/claims/:id/comments`                   | Add a claim comment (admin)                                |
-| `GET`           | `/api/admin/stats`                                 | Get dashboard statistics (admin)                           |
-| `GET`           | `/health`                                          | Check API and database availability                        |
+| Method        | Endpoint                                           | Description                                                                      |
+| ------------- | -------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `POST`        | `/api/auth/register`                               | Register a customer account                                                      |
+| `POST`        | `/api/auth/login`                                  | Sign in                                                                          |
+| `GET`         | `/api/auth/me`                                     | Get the signed-in user                                                           |
+| `GET`         | `/api/policies`                                    | List the signed-in customer's policies                                           |
+| `GET`         | `/api/policies/:id`                                | Get a policy owned by the signed-in customer                                     |
+| `POST`        | `/api/assistant/ask`                               | Ask a question about an owned policy; streams the answer and citations using SSE |
+| `GET`         | `/api/assistant/history?policyId=...`              | Read the signed-in customer's policy conversation                                |
+| `DELETE`      | `/api/assistant/history?policyId=...`              | Clear the signed-in customer's policy conversation                               |
+| `GET`, `POST` | `/api/claims`                                      | List claims or submit a claim                                                    |
+| `GET`         | `/api/claims/:id`                                  | Get a claim owned by the signed-in customer                                      |
+| `POST`        | `/api/claims/:id/documents`                        | Upload a claim document                                                          |
+| `GET`         | `/api/claims/:claimId/documents/:documentId`       | Download a claim document                                                        |
+| `GET`         | `/api/admin/claims`                                | List and filter claims (admin)                                                   |
+| `GET`         | `/api/admin/claims/:id`                            | Get claim details (admin)                                                        |
+| `GET`         | `/api/admin/claims/:id/summary`                    | Get an admin claim's AI summary, if generated (admin)                            |
+| `POST`        | `/api/admin/claims/:id/summary`                    | Generate or regenerate an AI claim summary (admin)                               |
+| `GET`         | `/api/admin/claims/:claimId/documents/:documentId` | Download a claim document (admin)                                                |
+| `PATCH`       | `/api/admin/claims/:id/status`                     | Update a claim status (admin)                                                    |
+| `POST`        | `/api/admin/claims/:id/comments`                   | Add a claim comment (admin)                                                      |
+| `GET`         | `/api/admin/stats`                                 | Get dashboard statistics (admin)                                                 |
+| `GET`         | `/health`                                          | Check API and database availability                                              |
 
 ## Environment variable reference
 
 The names below are configured through environment files for local work and hosting-provider settings for deployment. Do not commit real credentials.
 
-| Component      | Variable names                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Server         | `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`                                                                                                                                                                                                                                                                                                                                                                                                             |
-| AI and RAG     | `LLM_ENABLED`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL`, `LLM_DAILY_CALL_CAP`, `LLM_ADMIN_RATE_LIMIT`, `LLM_ADMIN_RATE_LIMIT_WINDOW_MS`, `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, `RAG_TOP_K`, `RAG_MIN_SIMILARITY`, `ASSISTANT_USER_RATE_LIMIT`, `ASSISTANT_DAILY_CALL_CAP`                                                                                                                                                                                                             |
-| Client         | `VITE_API_URL`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Docker Compose | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VITE_API_URL`                                                                                                                                                                                                                                                                                                                                                                                           |
+| Component      | Variable names                                                                                                                                                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Server         | `NODE_ENV`, `PORT`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_ORIGIN`                                                                                                                                                                                              |
+| AI and RAG     | `LLM_ENABLED`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL`, `LLM_DAILY_CALL_CAP`, `LLM_ADMIN_RATE_LIMIT`, `LLM_ADMIN_RATE_LIMIT_WINDOW_MS`, `EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS`, `RAG_TOP_K`, `RAG_MIN_SIMILARITY`, `ASSISTANT_USER_RATE_LIMIT`, `ASSISTANT_DAILY_CALL_CAP` |
+| Client         | `VITE_API_URL`                                                                                                                                                                                                                                                                   |
+| Docker Compose | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VITE_API_URL`                                                                                                                                                                              |
 
 ## Known limitations
 
